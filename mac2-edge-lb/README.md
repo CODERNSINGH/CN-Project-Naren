@@ -8,6 +8,7 @@ git clone https://github.com/CODERNSINGH/CN-Project-Naren.git ~/CN-Project-Naren
 cd ~/CN-Project-Naren && git pull               # every time before you start (picks up IP/config changes)
 cd mac2-edge-lb
 ```
+**Step 0b — find your IP (send it to the team lead):** `./scripts/my_ip.sh` (full explanation + manual commands: `../GUIDE_END_TO_END.md` §3). Then `git pull` once the lead has pushed `team.env`.
 Then continue with Phase 1 below. If `./scripts/...` says "permission denied": `chmod +x scripts/*.sh backend/*.sh 2>/dev/null`.
 If your Mac's IP differs from `team.env`, tell the team (one person edits `team.env`, runs `./sync.sh`, commits and pushes; everyone else runs `git pull`).
 
