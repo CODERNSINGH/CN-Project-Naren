@@ -1,0 +1,61 @@
+# ---- CN project edge (@@EDGE_ID@@) - rendered by configure_nginx.sh ----
+# Phase 1: round-robin LB + TLS termination (+HTTP/2)
+# Phase 2: passive health checks, retries, X-Edge header
+worker_processes 1;
+pid @@RUN_DIR@@/nginx.pid;
+events { worker_connections 1024; }
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile      on;
+
+    log_format cn '$remote_addr [$time_local] "$request" $status '
+                  'backend=$upstream_addr xb=$upstream_http_x_backend rt=$request_time';
+    access_log @@LOG_DIR@@/access.log cn;
+    error_log  @@LOG_DIR@@/error.log warn;
+
+    # ---------- upstream pool ----------
+    upstream backends {
+        # least_conn;                       # alternative strategy (default = round-robin)
+        server @@MAC3_IP@@:3001 max_fails=2 fail_timeout=10s;   # Backend A
+        server @@MAC4_IP@@:3002 max_fails=2 fail_timeout=10s;   # Backend B
+    }
+
+    # ---------- HTTP -> HTTPS redirect ----------
+    server {
+        listen @@HTTP_PORT@@;
+        server_name app.@@TEAM@@.test api.@@TEAM@@.test;
+        return 301 https://$host:@@HTTPS_PORT@@$request_uri;
+    }
+
+    # ---------- HTTPS edge ----------
+    server {
+        listen @@HTTPS_PORT@@ ssl@@HTTP2_LISTEN@@;
+        @@HTTP2_ON@@
+        server_name app.@@TEAM@@.test api.@@TEAM@@.test;
+
+        ssl_certificate     @@CERT@@;
+        ssl_certificate_key @@KEY@@;
+        ssl_protocols       TLSv1.2 TLSv1.3;
+        ssl_session_cache   shared:SSL:5m;
+        ssl_session_timeout 10m;
+
+        add_header X-Edge "@@EDGE_ID@@" always;   # proves WHICH edge answered (Ext E)
+
+        location / {
+            proxy_pass http://backends;
+            proxy_http_version 1.1;
+            proxy_set_header Host              $host;
+            proxy_set_header X-Real-IP         $remote_addr;
+            proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            # Phase 2 failover behaviour
+            proxy_connect_timeout 2s;
+            proxy_read_timeout    10s;
+            proxy_next_upstream   error timeout http_502 http_503 http_504;
+            proxy_next_upstream_tries 2;
+        }
+    }
+}
