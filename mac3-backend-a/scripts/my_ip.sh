@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Run FIRST on every Mac. Standalone (needs nothing else). Prints everything for the IP inventory table.
+IF="$(route -n get default 2>/dev/null | awk '/interface:/{print $2}')"; IF="${IF:-en0}"
+IP="$(ipconfig getifaddr "$IF" 2>/dev/null)"
+HEX="$(ifconfig "$IF" 2>/dev/null | awk '/inet /{print $4}')"
+MASK="n/a"; [ -n "$HEX" ] && MASK="$(printf '%d.%d.%d.%d' $((0x${HEX:2:2})) $((0x${HEX:4:2})) $((0x${HEX:6:2})) $((0x${HEX:8:2})))"
+SVC="$(networksetup -listallhardwareports | awk -v d="$IF" '/Hardware Port/{p=substr($0,16)} $0 ~ "Device: "d"$"{print p}')"
+echo "================ THIS MAC ================"
+echo "Hostname        : $(scutil --get LocalHostName 2>/dev/null)"
+echo "Interface       : $IF   (service name: ${SVC:-unknown}  -> put in NET_SERVICE)"
+echo "IPv4 address    : ${IP:-NOT CONNECTED}"
+echo "Netmask         : $MASK  (hex $HEX)"
+echo "Default gateway : $(netstat -nr | awk '$1=="default"{print $2; exit}')"
+echo "MAC address     : $(ifconfig "$IF" 2>/dev/null | awk '/ether/{print $2}')"
+echo "DNS servers     : $(scutil --dns | awk '/nameserver\[/{print $3}' | sort -u | tr '\n' ' ')"
+echo "Wi-Fi network   : $(networksetup -getairportnetwork "$IF" 2>/dev/null | sed 's/.*: //')"
+echo "=========================================="
+[ -z "$IP" ] && { echo "Not connected! Join the shared Wi-Fi/hotspot first."; exit 1; }
+echo "Tell the team lead:  <MacN>=$IP   e.g.  MAC3_IP=$IP"
+echo "Check if the router blocks Mac-to-Mac traffic:  ping -c 3 <another Mac's IP>"

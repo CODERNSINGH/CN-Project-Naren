@@ -10,12 +10,12 @@ Source documents are in `Docs/`. Everything below is already coded and tested lo
 | `mac3-backend-a/` | Mac 3 | Backend A `:3001`, backup DNS, standby edge | `mac3-backend-a/README.md` |
 | `mac4-backend-b/` | Mac 4 | Backend B `:3002` | `mac4-backend-b/README.md` |
 
-Also: `DEMO_RUNBOOK.md` (the 11 evaluation steps → exact commands), `EVIDENCE_CHECKLIST.md` (what to screenshot/save).
+Also: **`GUIDE_END_TO_END.md`** (how it works, environment per Mac, IP commands, who does what, troubleshooting), **`VIDEO_SCRIPT.md`** (submission video plan), `DEMO_RUNBOOK.md` (the 11 evaluation steps → exact commands), `EVIDENCE_CHECKLIST.md` (what to screenshot/save).
 
 ## 0. One-time prep (on THIS laptop)
 1. Connect all 4 Macs to the **same Wi-Fi / hotspot** (VPN off; no "AP isolation").
 2. On every Mac find its IP: `ipconfig getifaddr en0`
-3. Edit **`team.env`** (the 4 IPs, team name). Then run:
+3. Each Mac runs `./scripts/my_ip.sh` to get its IP. Then edit **`team.env`** — or simply run `./setup_team.sh IP1 IP2 IP3 IP4 team1` (writes it and syncs). To sync by hand:
    ```bash
    cd "/Users/Narendra/Desktop/NST/CN Project" && ./sync.sh
    ```
