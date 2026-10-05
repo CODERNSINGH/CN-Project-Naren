@@ -8,7 +8,7 @@ Client ─(3) TCP + (4) TLS ─► Mac 2 nginx :8443 ──(6)──► Mac 3 Ba
                                                 └──(6)──► Mac 4 Backend B :3002      X-Backend: A / B
 ```
 Full picture: open **`CN_Project_Architecture.excalidraw`** at https://excalidraw.com (Open / drag & drop, Shift+1 to fit).
-Source documents: `Docs/` (brief + master PDF).
+Source documents: `Docs/` (brief + master PDF).  **Follow `ROADMAP_SCREENSHOTS.md` — the ordered command list with the screenshot to take at every step.**
 
 ## 1. Team, network and IPs (verified 2026-10-05)
 
