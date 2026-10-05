@@ -1,5 +1,7 @@
 # Mac 2 — Edge Reverse Proxy + Load Balancer + TLS  (THIS laptop)
 
+**Owner:** Narendra · **IP:** 10.7.2.91 · netmask 255.255.224.0 · gateway 10.7.0.1 (campus Wi-Fi, subnet 10.7.0.0/19) · all IPs: `../team.env`
+
 **Role:** the only entry point. DNS names point here; nginx terminates TLS (port 8443) and round-robins to Backend A (Mac 3 :3001) and Backend B (Mac 4 :3002). Cloud equivalent: AWS ALB / CDN edge. You also own the **CA** (Task E).
 
 ## Step 0 — Get the code (every teammate, on their own Mac)
@@ -31,7 +33,7 @@ brew install nginx                # if you get HTTP/2 warnings: brew uninstall n
 Check:
 ```bash
 lsof -nP -iTCP:8443 -sTCP:LISTEN
-curl -s http://MAC3_IP:3001/health ; curl -s http://MAC4_IP:3002/health      # edge can reach backends
+curl -s http://10.7.1.186:3001/health ; curl -s http://10.7.8.104:3002/health      # edge can reach backends
 tail -f "$(brew --prefix)/var/log/nginx/access.log"                          # shows backend=… xb=A/B per request
 ```
 > This laptop's nginx is `nginx-full` without the HTTP/2 module. The script auto-detects and serves HTTP/1.1; install the standard `nginx` formula if you want to show HTTP/2 (optional per brief).
@@ -58,8 +60,8 @@ nginx -t ; nginx -s reload ; nginx -s stop ; pgrep -x nginx
 ## Phase 2 duties
 - **Ext D (HA failover):** already in the config (`max_fails=2 fail_timeout=10s`, `proxy_next_upstream`). Stop Backend A on Mac 3 → all answers `X-Backend: B`; restart → A/B again. Explain SPOF = this nginx.
 - **Ext E (migration):** this edge returns `X-Edge: mac2`; the standby on Mac 3 returns `X-Edge: standby`. After DNS cutover, optionally `nginx -s stop` here and show the service survives.
-- **Ext C test:** after Mac 3/4 enable pf, prove from here `curl http://MAC3_IP:3001/health` still works, while Mac 1 gets a timeout.
-- Backups for the standby: copy `certs/app.crt` and `certs/app.key` to Mac 3 (`scp certs/app.* USER@MAC3_IP:~/cn/mac3-backend-a/certs/`).
+- **Ext C test:** after Mac 3/4 enable pf, prove from here `curl http://10.7.1.186:3001/health` still works, while Mac 1 gets a timeout.
+- Backups for the standby: copy `certs/app.crt` and `certs/app.key` to Mac 3 (`scp certs/app.* USER@10.7.1.186:~/cn/mac3-backend-a/certs/`).
 - Config bundle: `generated/nginx.conf`, `scripts/`, certificate notes (`make_certs.sh`).
 
 ## Evidence you own

@@ -6,6 +6,12 @@
 source "$(dirname "$0")/lib.sh"
 need nginx "brew install nginx"
 EDGE_ID="mac2"; [ "${1:-}" = "standby" ] && EDGE_ID="standby"
+if [ "$EDGE_ID" = "mac2" ]; then assert_my_ip "$MAC2_IP"; else assert_my_ip "$STANDBY_EDGE_IP"; fi
+UPSTREAM_A="# Backend A (Mac 3) not set yet in team.env"; UPSTREAM_B="# Backend B (Mac 4) not set yet in team.env"
+is_ip "$MAC3_IP" && UPSTREAM_A="server $MAC3_IP:3001 max_fails=2 fail_timeout=10s;   # Backend A"
+is_ip "$MAC4_IP" && UPSTREAM_B="server $MAC4_IP:3002 max_fails=2 fail_timeout=10s;   # Backend B"
+is_ip "$MAC3_IP" || is_ip "$MAC4_IP" || { c_bad "No backend IP in team.env"; exit 1; }
+is_ip "$MAC4_IP" || c_info "NOTE: MAC4_IP not set -> Backend B left out of the upstream. Re-run this script after ./setup_team.sh + git pull."
 CERT="${CERT:-$ROOT_DIR/certs/app.crt}"
 KEY="${KEY:-$ROOT_DIR/certs/app.key}"
 [ -f "$CERT" ] && [ -f "$KEY" ] || { c_bad "Missing $CERT / $KEY"; exit 1; }
@@ -27,7 +33,7 @@ if nginx -V 2>&1 | grep -q http_v2_module; then
 else
   c_info "HTTP/2 module missing in this nginx -> serving HTTP/1.1 only (fix: brew install nginx)"
 fi
-RENDER_VARS="EDGE_ID TEAM MAC3_IP MAC4_IP HTTP_PORT HTTPS_PORT CERT KEY LOG_DIR RUN_DIR HTTP2_LISTEN HTTP2_ON"
+RENDER_VARS="EDGE_ID TEAM UPSTREAM_A UPSTREAM_B HTTP_PORT HTTPS_PORT CERT KEY LOG_DIR RUN_DIR HTTP2_LISTEN HTTP2_ON"
 render "$LIB_DIR/nginx.conf.template" > "$ROOT_DIR/generated/nginx.conf"
 
 NGX_CONF="$PREFIX/etc/nginx/nginx.conf"

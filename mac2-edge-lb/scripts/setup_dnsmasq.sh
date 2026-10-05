@@ -13,6 +13,7 @@ case "$ROLE" in
   *) echo "usage: $0 primary|backup"; exit 1 ;;
 esac
 APP_IP="${APP_IP:-$MAC2_IP}"
+require_ip MAC2_IP
 need brew "install Homebrew from https://brew.sh"
 assert_my_ip "$LISTEN_IP"
 
@@ -28,6 +29,7 @@ OUT="$ROOT_DIR/generated/dnsmasq.conf"
   echo "bind-interfaces"
   echo "# our zone is answered locally and never forwarded; everything else goes upstream"
   echo "local=/${TEAM}.test/"
+  echo "server=8.8.8.8"
   echo "server=1.1.1.1"
   if [ -n "${TTL:-}" ]; then
     echo "host-record=$APP_HOST,$APP_IP,$TTL"

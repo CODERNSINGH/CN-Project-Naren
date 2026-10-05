@@ -2,7 +2,7 @@
 """Generates CN_Project_Architecture.excalidraw (open at https://excalidraw.com -> Open / drag & drop).
 Run:  python3 _shared/diagram/build_excalidraw.py
 """
-import json, random, textwrap, os, sys
+import json, random, textwrap, os, sys, re
 
 random.seed(7)
 EL = []
@@ -444,6 +444,23 @@ y += 700
 
 text(0, y, "Single points of failure → fixes:  edge nginx (2 edges + VRRP/keepalived, health-checked DNS, cloud LB) · DNS (backup resolver) · LAN/router (redundant paths) · one CA/cert (rotate, 2 issuers)", 16, 2600, "left", "#e03131")
 text(0, y + 30, "Cloud map:  dnsmasq = Route 53 · nginx = ALB / CDN edge · backends = EC2 / containers · pf = security groups · DNS cutover = Route 53 weighted / failover routing · mkcert/OpenSSL CA = ACM / private CA", 16, 2600, "left", "#1971c2")
+
+# ---- substitute real IPs / owners from team.env
+REAL_IPS = {}
+_envp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "team.env")
+for _l in open(_envp):
+    _m = re.match(r"^([A-Z0-9_]+)=([^ #]+)", _l.strip())
+    if _m: REAL_IPS[_m.group(1)] = _m.group(2)
+_titles = {"Mac 1 — DNS server + TEST CLIENT": "MAC1_OWNER", "Mac 2 — EDGE: nginx proxy + LB + TLS (THIS laptop)": "MAC2_OWNER",
+           "Mac 3 — BACKEND A  (+ Phase 2 extras)": "MAC3_OWNER", "Mac 4 — BACKEND B": "MAC4_OWNER"}
+for _e in EL:
+    if _e["type"] != "text": continue
+    t = _e["text"]
+    for _k in ("BACKUP_DNS_IP", "STANDBY_EDGE_IP", "MAC1_IP", "MAC2_IP", "MAC3_IP", "MAC4_IP"):
+        if _k in REAL_IPS and REAL_IPS[_k] != "PENDING": t = t.replace(_k, REAL_IPS[_k])
+    for _tt, _ok in _titles.items():
+        if t == _tt and _ok in REAL_IPS: t = t + "  — " + REAL_IPS[_ok]
+    _e["text"] = _e["originalText"] = t
 
 doc = {"type": "excalidraw", "version": 2, "source": "https://excalidraw.com", "elements": EL,
        "appState": {"gridSize": None, "viewBackgroundColor": "#ffffff"}, "files": {}}

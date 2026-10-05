@@ -21,6 +21,7 @@ echo "DNS in use: $(networksetup -getdnsservers "$NET_SERVICE" 2>/dev/null | tr 
 step "Ping matrix from this Mac"
 for pair in "Mac1:$MAC1_IP" "Mac2:$MAC2_IP" "Mac3:$MAC3_IP" "Mac4:$MAC4_IP"; do
   name="${pair%%:*}"; ip="${pair#*:}"
+  is_ip "$ip" || { echo "SKIP  $name (IP not set in team.env yet)"; continue; }
   if ping -c 2 -t 4 "$ip" >/dev/null 2>&1; then c_ok "OK    $name $ip"; else c_bad "FAIL  $name $ip"; fi
 done
 echo

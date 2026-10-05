@@ -21,7 +21,7 @@ Goal: one continuous screen recording (~15–20 min) that follows the official *
 | 0:00 | Intro | Mac 1 owner | title slide: team, roles, domain | "private service platform: client → DNS → HTTPS edge → two backends, all local" |
 | 1:00 | 1 Topology + inventory | Mac 2 owner | diagram, IP table, service map | each role's cloud equivalent (Route 53, ALB, EC2) |
 | 2:30 | 2 LAN | Mac 4 owner | `./scripts/check_lan.sh` on 2 Macs | same subnet → no router, ARP gives MAC |
-| 3:30 | Backends | Mac 3 / Mac 4 owners | `./backend/run_backend.sh`, `curl -i http://MAC3_IP:3001/api/status`, `lsof` | binds 0.0.0.0, X-Backend header, fixed ports |
+| 3:30 | Backends | Mac 3 / Mac 4 owners | `./backend/run_backend.sh`, `curl -i http://10.7.1.186:3001/api/status`, `lsof` | binds 0.0.0.0, X-Backend header, fixed ports |
 | 5:00 | 3 DNS | Mac 1 owner | `dig app.team1.test`, `cat generated/dnsmasq.conf`, `scutil --dns` | DNS ≠ connection, A record, TTL, UDP/53 |
 | 6:30 | 4 HTTPS | Mac 2 owner | `curl -v https://app.team1.test:8443/api/status` + browser padlock/cert viewer | CA, SAN, chain of trust, no `-k`, no IP in URL |
 | 8:00 | 5 Load balancing | Mac 2 owner | `./scripts/demo_lb.sh`, show `generated/nginx.conf` upstream + `tail access.log` | round-robin, clients never see backend IPs, L7 |

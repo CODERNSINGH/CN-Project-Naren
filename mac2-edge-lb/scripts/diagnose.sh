@@ -12,7 +12,7 @@ chk "ping gateway"      "Wi-Fi, VPN, wrong network"             ping -c 2 -t 3 "
 chk "ping edge Mac 2"   "edge Mac off/wrong net, firewall ICMP" ping -c 2 -t 3 "$MAC2_IP"
 
 step "1. DNS layer"
-echo "resolver in use:"; scutil --dns | grep -m2 nameserver
+echo "resolver in use:"; scutil --dns | grep -m2 nameserver; warn_dns_proxy
 chk "dig answers (NOERROR)"        "wrong client resolver / dnsmasq down"  bash -c "dig +time=2 +tries=1 $APP_HOST | grep -q 'status: NOERROR'"
 GOT="$(dig +short +time=2 +tries=1 "$APP_HOST" | head -1)"
 echo "dig says $APP_HOST = ${GOT:-<nothing>}   (expected $MAC2_IP)"

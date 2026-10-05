@@ -18,8 +18,8 @@ http {
     # ---------- upstream pool ----------
     upstream backends {
         # least_conn;                       # alternative strategy (default = round-robin)
-        server @@MAC3_IP@@:3001 max_fails=2 fail_timeout=10s;   # Backend A
-        server @@MAC4_IP@@:3002 max_fails=2 fail_timeout=10s;   # Backend B
+        @@UPSTREAM_A@@
+        @@UPSTREAM_B@@
     }
 
     # ---------- HTTP -> HTTPS redirect ----------
@@ -35,8 +35,8 @@ http {
         @@HTTP2_ON@@
         server_name app.@@TEAM@@.test api.@@TEAM@@.test;
 
-        ssl_certificate     @@CERT@@;
-        ssl_certificate_key @@KEY@@;
+        ssl_certificate     "@@CERT@@";
+        ssl_certificate_key "@@KEY@@";
         ssl_protocols       TLSv1.2 TLSv1.3;
         ssl_session_cache   shared:SSL:5m;
         ssl_session_timeout 10m;
