@@ -9,3 +9,6 @@ ca.crt
 *.pcap
 *.key
 ip.md
+
+# personal study notes (not for submission)
+understand-project/

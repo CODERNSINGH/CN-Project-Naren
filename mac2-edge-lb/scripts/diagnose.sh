@@ -16,8 +16,8 @@ echo "resolver in use:"; scutil --dns | grep -m2 nameserver; warn_dns_proxy
 chk "dig answers (NOERROR)"        "wrong client resolver / dnsmasq down"  bash -c "dig +time=2 +tries=1 $APP_HOST | grep -q 'status: NOERROR'"
 GOT="$(dig +short +time=2 +tries=1 "$APP_HOST" | head -1)"
 echo "dig says $APP_HOST = ${GOT:-<nothing>}   (expected $MAC2_IP)"
-[ "$GOT" = "$MAC2_IP" ] && c_ok "PASS  record points to the edge" || { c_bad "FAIL  wrong/missing record -> check dnsmasq.conf, stale cache (flush)"; fail=1; }
-chk "system resolver agrees"       "stale cache: flush mDNSResponder"       bash -c "dscacheutil -q host -a name $APP_HOST | grep -q $MAC2_IP"
+{ [ "$GOT" = "$MAC2_IP" ] || [ "$GOT" = "$STANDBY_EDGE_IP" ]; } && c_ok "PASS  record points to an edge (primary or standby)" || { c_bad "FAIL  wrong/missing record -> check dnsmasq.conf, stale cache (flush)"; fail=1; }
+chk "system resolver agrees"       "stale cache: flush mDNSResponder"       bash -c "dscacheutil -q host -a name $APP_HOST | grep -qE '$MAC2_IP|$STANDBY_EDGE_IP'"
 
 step "2. TCP layer"
 chk "edge port $HTTPS_PORT open"   "nginx down, wrong port, pf/firewall, wrong bind" nc -z -w 3 "$MAC2_IP" "$HTTPS_PORT"

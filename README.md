@@ -33,6 +33,7 @@ The single source of truth is **`team.env`**. If a Mac's IP changes (DHCP), see 
 | Mac 3 / Mac 4 backends | ⏳ Keshav / Mayank start them (§3) |
 | Mac 1 dnsmasq + trust CA + set DNS | ⏳ Mohan (§3) |
 | Phase 1 gate (`demo_lb.sh` alternates A,B) | ⏳ after the three above |
+| Phase 2 tooling (Ext A–F scripts, `phase2_check.sh`, `PHASE2_REPORT.md`) | ✅ implemented — run it, then collect evidence |
 
 Until the backends run, the edge answers **502 Bad Gateway** — that is expected (it is Failure demo #4).
 
