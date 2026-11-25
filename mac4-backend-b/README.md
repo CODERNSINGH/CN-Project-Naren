@@ -53,7 +53,7 @@ Demonstrate: Mac 2 `curl -i http://10.7.25.176:3002/health` → 200; Mac 1 → t
 ```
 
 ### Evidence & report help
-This Mac's owner typically keeps the **evidence folder** and writes the Phase 2 report: collect screenshots from all Macs into `evidence/` (see `../EVIDENCE_CHECKLIST.md`) and fill the TODOs in `Docs/CN_Project_Master.pdf` chapter 9.
+This Mac's owner typically keeps the **evidence folder** and writes the Phase 2 report: collect screenshots from all Macs into `evidence/` (see `../EVIDENCE_CHECKLIST.md`) the Phase 2 report is Section VII of `Docs/main.pdf` (source `Docs/report/main.tex`).
 
 ## Be ready to explain (viva)
 Why backends use different ports · what `X-Backend` proves · why identical ETags on A and B matter for 304 · what the edge sees when this backend dies (`max_fails`, `fail_timeout`, `proxy_next_upstream`).

@@ -683,7 +683,7 @@ Raw logs: `mac2-edge-lb/evidence/EF0-fault.txt`
 - Caching (Task F) and failure demos 1, 4 and 5 were reproduced on Mac 2 after the lab session, not during it, because the lab backends had been switched off. They are labelled REPRODUCED.
 - Ext C connectivity test, Ext D full failover and the Ext F fault run were taken at the wrong moment (see the notes). The configuration and the supporting logs are complete.
 - Failures 2 and 3 are explained from existing evidence, not shown as separate screenshots.
-- Chapter 9 of Docs/CN_Project_Master.pdf: paste the numbers and screenshots from this report.
+- The full written report in IEEE format, including the Phase 2 final report (Section VII), is Docs/main.pdf (LaTeX source in Docs/report/).
 
 ## 7. Viva: short answers
 

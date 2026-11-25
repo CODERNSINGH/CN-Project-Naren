@@ -25,5 +25,5 @@
 | `EE-x-edge-timeline.png` | E | `./scripts/demo_edge.sh` during cutover |
 | `EF-diagnose.png` + notes | F | `./scripts/diagnose.sh` + what you fixed |
 
-Also keep: `Docs/CN_Project_Master.pdf` chapter 9 TODOs filled (test log + timestamps), each Mac's `generated/` configs, and the `_shared/backend/` code (zip or GitHub).
+Also keep: the final report `Docs/main.pdf` (Phase 2 report = Section VII), each Mac's `generated/` configs, and the `_shared/backend/` code (zip or GitHub).
 Tip: macOS screenshot = Cmd+Shift+4; terminal text: copy into the PNG or save with `script`/`tee`, e.g. `./scripts/demo_lb.sh | tee evidence/D1-lb-loop.txt`.

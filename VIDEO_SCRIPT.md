@@ -39,7 +39,7 @@ Tips: say the command's purpose before running it · pause 2 s on important outp
 ```
 submission/
   CN_Project_team1_demo.mp4
-  Architecture + report PDF (Docs/CN_Project_Master.pdf with chapter 9 and screenshots filled in)
+  Architecture + final report PDF (Docs/main.pdf)
   evidence/            (screenshots, phase1.pcapng, tls12.pcapng)  – see EVIDENCE_CHECKLIST.md
   config bundle/       (each Mac's generated/dnsmasq.conf, generated/nginx.conf, scripts/)
   backend source/      (_shared/backend/)  or GitHub link: https://github.com/CODERNSINGH/CN-Project-Naren

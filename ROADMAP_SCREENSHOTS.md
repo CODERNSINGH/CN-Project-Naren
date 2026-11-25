@@ -112,7 +112,7 @@ Narendra (Mac 2): this laptop already has a build from earlier. To redo it clean
 | P12 | F | Mohan | `./scripts/diagnose.sh` (healthy, all PASS) then ask a teammate to break one thing, run again | first FAIL names the layer | `EF1-diagnose-ok.png`, `EF2-diagnose-fault.png` |
 
 ## FINAL
-1. Rehearse with `DEMO_RUNBOOK.md` (11 steps). 2. Record with `VIDEO_SCRIPT.md`. 3. Fill report chapter 9 (`Docs/CN_Project_Master.pdf`) with the screenshots/timestamps. 4. `git add evidence && git commit && git push`.
+1. Rehearse with `DEMO_RUNBOOK.md` (11 steps). 2. Record with `VIDEO_SCRIPT.md`. 3. Final report with screenshots/timestamps: `Docs/main.pdf` (source `Docs/report/main.tex`). 4. `git add evidence && git commit && git push`.
 
 ## If something fails (one line each)
 - Any problem → on Mohan `./scripts/diagnose.sh`, fix the **first FAIL**.

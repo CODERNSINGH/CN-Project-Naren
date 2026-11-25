@@ -8,7 +8,7 @@ Client ─(3) TCP + (4) TLS ─► Mac 2 nginx :8443 ──(6)──► Mac 3 Ba
                                                 └──(6)──► Mac 4 Backend B :3002      X-Backend: A / B
 ```
 Full picture: open **`CN_Project_Architecture.excalidraw`** at https://excalidraw.com (Open / drag & drop, Shift+1 to fit).
-Source documents: `Docs/` (brief + master PDF).  **Follow `ROADMAP_SCREENSHOTS.md` — the ordered command list with the screenshot to take at every step.**
+Source documents: `Docs/` (brief + final report `Docs/main.pdf`, LaTeX source in `Docs/report/`).  **Follow `ROADMAP_SCREENSHOTS.md` — the ordered command list with the screenshot to take at every step.**
 
 ## 1. Team, network and IPs (verified 2026-10-05)
 
@@ -140,7 +140,7 @@ Docs/  evidence/
 ```
 Edit `_shared/…` then run `./sync.sh` (copies into the four folders). Regenerate the diagram: `python3 _shared/diagram/build_excalidraw.py`.
 
-Deliverables map: Architecture doc = diagram + `Docs/CN_Project_Master.pdf` · Configuration bundle = each Mac's `generated/*.conf` + `scripts/` · Backend code = `_shared/backend/` · Evidence = `evidence/` · Phase 2 report = master PDF ch. 9 · Video = `VIDEO_SCRIPT.md`.
+Deliverables map: Final report = `Docs/main.pdf` (IEEE format; source `Docs/report/main.tex`, rebuild with `tectonic --outdir Docs Docs/report/main.tex`) · Architecture doc = diagram + `Docs/main.pdf` Section III · Configuration bundle = each Mac's `generated/*.conf` + `scripts/` (+ `Docs/main.pdf` Appendix A) · Backend code = `_shared/backend/` · Evidence = `evidence/` · Phase 2 report = `Docs/main.pdf` Section VII · Video = `VIDEO_SCRIPT.md`.
 
 Team:
 Mayank Gupta: 2401010267

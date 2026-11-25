@@ -78,7 +78,7 @@ Browser: DevTools → Network → open `https://app.team1.test:8443/api/catalog`
 # 4: stop both backends, then          ./scripts/failures.sh 4     (502, DNS+TLS fine)
 ./scripts/failures.sh 5      # wrong port 9999
 ```
-Screenshot each and write one sentence of "why" (see `Docs/CN_Project_Master.pdf` ch. 4).
+Screenshot each and write one sentence of "why" (see `Docs/main.pdf` Section V).
 
 ## Phase 2
 - **Ext A backup DNS** (Mac 3 runs `setup_dnsmasq.sh backup`):

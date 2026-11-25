@@ -432,11 +432,11 @@ rows = [["Port / proto", "Who", "Purpose"],
         ["49152–65535", "client", "ephemeral source ports"]]
 table(940, y, [220, 420, 500], rows, "blue", size=14)
 rows = [["Deliverable", "Where it comes from"],
-        ["Architecture document", "this diagram + IP table + Docs/CN_Project_Master.pdf"],
+        ["Architecture document", "this diagram + IP table + Docs/main.pdf"],
         ["Configuration bundle", "generated/dnsmasq.conf, generated/nginx.conf, scripts/, cert notes, pf rules"],
         ["Backend source code", "_shared/backend/ (GitHub repo link)"],
         ["Evidence folder", "evidence/ — see EVIDENCE_CHECKLIST.md"],
-        ["Phase 2 report", "Docs/CN_Project_Master.pdf chapter 9 (fill TODOs)"],
+        ["Phase 2 report", "Docs/main.pdf Section VII"],
         ["Final presentation + video", "DEMO_RUNBOOK.md · VIDEO_SCRIPT.md"]]
 yy = y + 330
 table(940, yy, [330, 810], rows, "yellow", size=14)
