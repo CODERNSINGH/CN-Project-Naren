@@ -1,0 +1,12 @@
+$ curl -sI --resolve $APP_HOST:$HTTPS_PORT:$STANDBY_EDGE_IP $BASE_URL/api/status | head -8; lsof -nP -iTCP:$HTTPS_PORT -sTCP:LISTEN | head -3
+HTTP/2 200 
+server: nginx/1.31.10
+date: Wed, 25 Nov 2026 05:38:13 GMT
+content-type: application/json
+content-length: 48
+cache-control: no-store
+x-backend: A
+x-response-time-ms: 0.1
+COMMAND   PID         USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+nginx   13795 keshavrajput    7u  IPv4 0x5b5719a503314d3c      0t0  TCP *:8443 (LISTEN)
+nginx   13797 keshavrajput    7u  IPv4 0x5b5719a503314d3c      0t0  TCP *:8443 (LISTEN)

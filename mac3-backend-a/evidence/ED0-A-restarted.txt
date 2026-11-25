@@ -1,0 +1,2 @@
+$ curl -s http://$MAC3_IP:3001/health
+{"backend":"A","port":3001,"requests":24,"status":"up","uptime_s":1673}

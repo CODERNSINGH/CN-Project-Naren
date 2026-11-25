@@ -1,0 +1,9 @@
+$ dig +short $APP_HOST @$BACKUP_DNS_IP; dig $APP_HOST @$BACKUP_DNS_IP +noall +answer; sudo lsof -nP -iUDP:53 | head -3
+10.7.7.27
+
+; <<>> DiG 9.10.6 <<>> app.team1.test @10.7.29.229 +noall +answer
+;; global options: +cmd
+app.team1.test.		0	IN	A	10.7.7.27
+COMMAND   PID   USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+dnsmasq 13134 nobody    4u  IPv4 0x17448f57a514adfb      0t0  UDP 10.7.29.229:53
+dnsmasq 13134 nobody    6u  IPv4 0x5d8d87abe649e407      0t0  UDP 127.0.0.1:53

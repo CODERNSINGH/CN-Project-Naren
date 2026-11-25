@@ -1,0 +1,26 @@
+$ ./isolate_pf.sh 3001
+
+[1m== Rollback copy ==[0m
+Status: Disabled for 0 days 00:02:50          Debug: Urgent
+
+[1m== Build /etc/pf.cn.conf (default rules + isolation) ==[0m
+pfctl: Use of -f option, could result in flushing of rules
+present in the main ruleset added by the system at startup.
+See /etc/pf.conf for further details.
+
+pfctl: Use of -f option, could result in flushing of rules
+present in the main ruleset added by the system at startup.
+See /etc/pf.conf for further details.
+
+No ALTQ support in kernel
+ALTQ related functions disabled
+No ALTQ support in kernel
+ALTQ related functions disabled
+pf enabled
+
+[1m== Active rules for port 3001 ==[0m
+No ALTQ support in kernel
+ALTQ related functions disabled
+pass in quick inet proto tcp from 10.7.7.27 to any port = 3001 flags S/SA keep state
+block drop in quick proto tcp from any to any port = 3001
+[32mIsolation ON. Test: from Mac 2 curl http://10.7.29.229:3001/health works; from Mac 1 it times out.[0m
