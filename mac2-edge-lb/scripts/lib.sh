@@ -48,3 +48,17 @@ assert_my_ip() {
     exit 1
   fi
 }
+
+# ---------- evidence helpers (Phase 2 automation) ----------
+EVID="$ROOT_DIR/evidence"; mkdir -p "$EVID"
+# shot NAME -> screenshot of the whole screen into evidence/NAME.png (Terminal needs Screen Recording permission)
+shot() {
+  sleep 1
+  if screencapture -x "$EVID/$1.png" 2>/dev/null && [ -s "$EVID/$1.png" ]; then c_ok "screenshot saved: evidence/$1.png"
+  else c_bad "auto-screenshot failed -> press Cmd+Shift+3 now and save it as evidence/$1.png"; fi
+}
+# runc NAME 'command string' -> runs it, shows output, saves it to evidence/NAME.txt
+runc() { local n="$1"; shift; { echo "\$ $*"; eval "$*"; } 2>&1 | tee "$EVID/$n.txt"; }
+# pause MESSAGE -> wait for Enter (used as sync points between teammates)
+pause() { printf '\n\033[33m>>> %s\033[0m\n    Press Enter to continue... ' "$*"; read -r _; }
+has_ip() { ifconfig | grep -q "inet $1 "; }
