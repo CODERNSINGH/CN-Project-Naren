@@ -46,10 +46,10 @@ Important ordering tips: in stage 5, Narendra starts **first** (cert serving) an
 8. Fill `PHASE2_REPORT.md` (and chapter 9 of the PDF) with the screenshots and the timeline numbers.
 
 ## 4. DNS part in plain words (what actually happens)
-- Primary DNS = Mac 1 (`10.7.16.221`), backup = Mac 3 (`10.7.1.186`), both answer `app.team1.test → 10.7.2.91`.
+- Primary DNS = Mac 1 (`10.7.9.43`), backup = Mac 3 (`10.7.29.229`), both answer `app.team1.test → 10.7.7.27`.
 - Client list is Mac 1 then Mac 3 (`set_dns.sh both`). Stop Mac 1's dnsmasq → first query times out → macOS asks Mac 3 → site still opens (slightly slower).
 - TTL: `TTL=30` makes each answer cacheable for 30 s. Change the record → clients keep the old IP ≤ 30 s; flush = instant.
-- Cutover: DNS record changed to `10.7.1.186` (standby nginx) → `X-Edge` flips `mac2 → standby` after TTL. Mohan restores the record to Mac 2 right after.
+- Cutover: DNS record changed to `10.7.29.229` (standby nginx) → `X-Edge` flips `mac2 → standby` after TTL. Mohan restores the record to Mac 2 right after.
 - Cleanup when the whole project is finished (not tonight): every Mac `./scripts/set_dns.sh restore`.
 
 ## 5. Evidence produced (names the report expects)

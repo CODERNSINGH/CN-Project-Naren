@@ -69,10 +69,10 @@ Final IP table (measured 2026-10-05 on the campus network — mask 255.255.224.0
 
 | Mac | Owner | Role | IPv4 | Iface | Notes |
 |---|---|---|---|---|---|
-| 1 | Mohan | DNS + client | 10.7.16.221 | en0 | had DNS 127.0.2.2 / 127.0.2.3 = local DNS proxy (WARP/VPN) → turn it OFF |
-| 2 | Narendra | Edge/LB/TLS | 10.7.2.91 | en0 | DNS from DHCP: 8.8.8.8, 10.5.7.1 |
-| 3 | Keshav | Backend A | 10.7.1.186 | en0 | DNS from DHCP: 8.8.8.8, 10.5.7.1 |
-| 4 | Mayank | Backend B | 10.7.8.104 | en0 | DNS manually set to 1.1.1.1; saw "No route to host" once (Wi-Fi blip) |
+| 1 | Mohan | DNS + client | 10.7.9.43 | en0 | had DNS 127.0.2.2 / 127.0.2.3 = local DNS proxy (WARP/VPN) → turn it OFF |
+| 2 | Narendra | Edge/LB/TLS | 10.7.7.27 | en0 | DNS from DHCP: 8.8.8.8, 10.5.7.1 |
+| 3 | Keshav | Backend A | 10.7.29.229 | en0 | DNS from DHCP: 8.8.8.8, 10.5.7.1 |
+| 4 | Mayank | Backend B | 10.7.25.176 | en0 | DNS manually set to 1.1.1.1; saw "No route to host" once (Wi-Fi blip) |
 
 Public IP of all Macs: 115.244.141.202 (campus NAT) → same network. Mac-to-Mac ping verified from Mac 2 to Mac 1, 3 and 4.
 The raw commands the team used (run in any terminal, no `#` comments needed in zsh): `route -n get default` · `ipconfig getifaddr en0` · `ipconfig getoption en0 subnet_mask` · `ipconfig getoption en0 server_identifier` · `scutil --dns | grep nameserver` · `curl ifconfig.me` · `ping -c 4 10.7.0.1` — `./scripts/my_ip.sh` runs all of them.

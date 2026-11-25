@@ -2,7 +2,7 @@
 
 You run every command yourselves. Each row = **who · where · command · what you must see · screenshot name**.
 Save screenshots in `evidence/` with the names shown (Cmd+Shift+4 on Mac; include the terminal prompt + command in the shot).
-IPs: Mohan Mac 1 `10.7.16.221` · Narendra Mac 2 `10.7.2.91` · Keshav Mac 3 `10.7.1.186` · Mayank Mac 4 `10.7.8.104` · router `10.7.0.1` · domain `app.team1.test:8443`.
+IPs: Mohan Mac 1 `10.7.9.43` · Narendra Mac 2 `10.7.7.27` · Keshav Mac 3 `10.7.29.229` · Mayank Mac 4 `10.7.25.176` · router `10.7.0.1` · domain `app.team1.test:8443`.
 
 ## 0. Before anything (everyone)
 ```bash
@@ -28,18 +28,18 @@ Narendra (Mac 2): this laptop already has a build from earlier. To redo it clean
 | C2 | Mayank | `./backend/run_backend.sh` (leave open) | `Running on http://0.0.0.0:3002` | `C2-backendB-running.png` |
 | C3 | Keshav | `lsof -nP -iTCP:3001 -sTCP:LISTEN` | `*:3001` | `C3-lsof-3001.png` |
 | C4 | Mayank | `lsof -nP -iTCP:3002 -sTCP:LISTEN` | `*:3002` | `C4-lsof-3002.png` |
-| C5 | **Mohan** (another Mac!) | `curl -i http://10.7.1.186:3001/api/status` | `{"backend":"A"…}` + `X-Backend: A` | `C5-curl-A-from-mac1.png` |
-| C6 | **Mohan** | `curl -i http://10.7.8.104:3002/api/status` | `X-Backend: B` | `C6-curl-B-from-mac1.png` |
+| C5 | **Mohan** (another Mac!) | `curl -i http://10.7.29.229:3001/api/status` | `{"backend":"A"…}` + `X-Backend: A` | `C5-curl-A-from-mac1.png` |
+| C6 | **Mohan** | `curl -i http://10.7.25.176:3002/api/status` | `X-Backend: B` | `C6-curl-B-from-mac1.png` |
 
 ### Task B — DNS (Mohan, Mac 1)
 | # | Command | You must see | Screenshot |
 |---|---|---|---|
-| B1 | `./scripts/setup_dnsmasq.sh primary` | password prompt, `dnsmasq: syntax check OK`, dig answer `10.7.2.91` | `B1-dnsmasq-setup.png` |
-| B2 | `sudo lsof -nP -iUDP:53` | dnsmasq on `10.7.16.221:53` | `B2-dnsmasq-listening.png` |
+| B1 | `./scripts/setup_dnsmasq.sh primary` | password prompt, `dnsmasq: syntax check OK`, dig answer `10.7.7.27` | `B1-dnsmasq-setup.png` |
+| B2 | `sudo lsof -nP -iUDP:53` | dnsmasq on `10.7.9.43:53` | `B2-dnsmasq-listening.png` |
 | B3 | `cat generated/dnsmasq.conf` | the records | `B3-dnsmasq-conf.png` |
-| B4 | `./scripts/set_dns.sh primary` | `nameserver … 10.7.16.221`, **no red WARNING** | `B4-set-dns-mac1.png` |
-| B5 | `dig app.team1.test` · `nslookup app.team1.test` | `SERVER: 10.7.16.221`, ANSWER `10.7.2.91` | `B5-dig-mac1.png`, `B5-nslookup-mac1.png` |
-| B6 | `dscacheutil -q host -a name app.team1.test` · `scutil --dns \| head -30` | ip_address 10.7.2.91 | `B6-system-resolver.png` |
+| B4 | `./scripts/set_dns.sh primary` | `nameserver … 10.7.9.43`, **no red WARNING** | `B4-set-dns-mac1.png` |
+| B5 | `dig app.team1.test` · `nslookup app.team1.test` | `SERVER: 10.7.9.43`, ANSWER `10.7.7.27` | `B5-dig-mac1.png`, `B5-nslookup-mac1.png` |
+| B6 | `dscacheutil -q host -a name app.team1.test` · `scutil --dns \| head -30` | ip_address 10.7.7.27 | `B6-system-resolver.png` |
 | B7 | **second client** (Keshav or Mayank): `./scripts/set_dns.sh primary` then `dig app.team1.test` | same answer | `B7-dig-second-client.png` |
 
 ### Task E — Edge + TLS (Narendra, Mac 2)
@@ -50,7 +50,7 @@ Narendra (Mac 2): this laptop already has a build from earlier. To redo it clean
 | E3 | `openssl x509 -in certs/app.crt -noout -text \| grep -A1 "Subject Alternative"` | DNS:app.team1.test, DNS:api.team1.test | `E3-cert-san.png` |
 | E4 | `./scripts/configure_nginx.sh` | `nginx -t … successful`, `*:8443 LISTEN` | `E4-nginx-up.png` |
 | E5 | `cat generated/nginx.conf` | upstream with both backends | `E5-nginx-conf.png` |
-| E6 | `./scripts/serve_ca.sh` (leave running) | serving `http://10.7.2.91:8000/ca.crt` | `E6-serve-ca.png` |
+| E6 | `./scripts/serve_ca.sh` (leave running) | serving `http://10.7.7.27:8000/ca.crt` | `E6-serve-ca.png` |
 | E7 | Mohan, Keshav, Mayank each: `./scripts/trust_ca.sh` (password) | `CA trusted`, fingerprint **identical** on all | `E7-trust-ca-macN.png` |
 | E8 | then Narendra: Ctrl+C `serve_ca.sh` | | |
 
@@ -74,13 +74,13 @@ Narendra (Mac 2): this laptop already has a build from earlier. To redo it clean
 | F2 | Chrome → DevTools → Network → open `/api/catalog`, reload within 60 s | `(memory cache)` / `disk cache` | `F3-devtools-cache.png` |
 
 ### Task G — Wireshark (Mohan; Wireshark: `brew install --cask wireshark`)
-1. Wireshark → interface `en0` → capture filter `host 10.7.16.221 or host 10.7.2.91` → Start.
+1. Wireshark → interface `en0` → capture filter `host 10.7.9.43 or host 10.7.7.27` → Start.
 2. Terminal: `sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder` then `curl -v https://app.team1.test:8443/api/status` then `for i in 1 2 3 4; do curl -sI https://app.team1.test:8443/api/status | grep -i x-backend; done` then `curl -v --tlsv1.2 --tls-max 1.2 https://app.team1.test:8443/`.
 3. Stop, **save `evidence/phase1.pcapng`**.
 
 | # | Display filter | Screenshot (point at the packets) |
 |---|---|---|
-| G1 | `dns` | `G1-dns.png` (query UDP→53 + answer 10.7.2.91) |
+| G1 | `dns` | `G1-dns.png` (query UDP→53 + answer 10.7.7.27) |
 | G2 | `tcp.flags.syn==1 && tcp.port==8443` | `G2-tcp-handshake.png` (SYN, SYN-ACK; then ACK) |
 | G3 | `tls.handshake` | `G3-tls-handshake.png` (ClientHello SNI, ServerHello, Certificate in the TLS 1.2 capture) |
 | G4 | `tls.record.content_type==23` | `G4-encrypted-data.png` |
@@ -90,7 +90,7 @@ Narendra (Mac 2): this laptop already has a build from earlier. To redo it clean
 | # | Command | You must see | Screenshot |
 |---|---|---|---|
 | X1 | `./scripts/failures.sh 1` | dig timeout, ping works, restore | `X1-wrong-dns.png` |
-| X2 | Mac 1: `APP_IP=10.7.8.104 ./scripts/setup_dnsmasq.sh primary`, then `./scripts/failures.sh 2`; restore with `./scripts/setup_dnsmasq.sh primary` | dig OK but wrong host | `X2-wrong-record.png` |
+| X2 | Mac 1: `APP_IP=10.7.25.176 ./scripts/setup_dnsmasq.sh primary`, then `./scripts/failures.sh 2`; restore with `./scripts/setup_dnsmasq.sh primary` | dig OK but wrong host | `X2-wrong-record.png` |
 | X3 | Keshav Ctrl+C backend A, Mohan `./scripts/failures.sh 3`; restart A | all `X-Backend: B` | `X3-one-backend.png` |
 | X4 | stop both backends, `./scripts/failures.sh 4`; restart both | `502 Bad Gateway`, TLS ok | `X4-both-down.png` |
 | X5 | `./scripts/failures.sh 5` | refused / SYN→RST in Wireshark | `X5-wrong-port.png` |
@@ -98,17 +98,17 @@ Narendra (Mac 2): this laptop already has a build from earlier. To redo it clean
 ## PHASE 2
 | # | Ext | Who | Command | You must see | Screenshot |
 |---|---|---|---|---|---|
-| P1 | A | Keshav | `./scripts/setup_dnsmasq.sh backup` | `dig +short app.team1.test @10.7.1.186` → 10.7.2.91 | `EA1-backup-dns.png` |
-| P2 | A | Mohan | `./scripts/set_dns.sh both` → `sudo brew services stop dnsmasq` → `dig +tries=1 +time=2 app.team1.test @10.7.16.221` (fails) → `curl -sI https://app.team1.test:8443/ \| head -1` (works) → `sudo brew services start dnsmasq` | primary dead, backup serves | `EA2-failover.png` |
-| P3 | B | Mohan | `TTL=30 ./scripts/setup_dnsmasq.sh primary` (Keshav the same with `backup`); terminal 1 `./scripts/demo_ttl.sh`; terminal 2 `APP_IP=10.7.8.104 TTL=30 ./scripts/setup_dnsmasq.sh primary`; later flush `sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder`; restore `./scripts/setup_dnsmasq.sh primary` | old IP persists ≤30 s, then new; flush = instant | `EB-ttl-timeline.png` |
+| P1 | A | Keshav | `./scripts/setup_dnsmasq.sh backup` | `dig +short app.team1.test @10.7.29.229` → 10.7.7.27 | `EA1-backup-dns.png` |
+| P2 | A | Mohan | `./scripts/set_dns.sh both` → `sudo brew services stop dnsmasq` → `dig +tries=1 +time=2 app.team1.test @10.7.9.43` (fails) → `curl -sI https://app.team1.test:8443/ \| head -1` (works) → `sudo brew services start dnsmasq` | primary dead, backup serves | `EA2-failover.png` |
+| P3 | B | Mohan | `TTL=30 ./scripts/setup_dnsmasq.sh primary` (Keshav the same with `backup`); terminal 1 `./scripts/demo_ttl.sh`; terminal 2 `APP_IP=10.7.25.176 TTL=30 ./scripts/setup_dnsmasq.sh primary`; later flush `sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder`; restore `./scripts/setup_dnsmasq.sh primary` | old IP persists ≤30 s, then new; flush = instant | `EB-ttl-timeline.png` |
 | P4 | C | Keshav | `./scripts/isolate_pf.sh 3001` | rules shown | `EC1-pf-on-mac3.png` |
 | P5 | C | Mayank | `./scripts/isolate_pf.sh 3002` | rules shown | `EC2-pf-on-mac4.png` |
-| P6 | C | Narendra | `curl -i http://10.7.1.186:3001/health` | **200** | `EC3-edge-allowed.png` |
-| P7 | C | Mohan | `curl -m 5 -i http://10.7.1.186:3001/health` · `nc -vz -w 3 10.7.1.186 3001` · `curl -s https://app.team1.test:8443/api/status` | timeout, fail, **still works via edge** | `EC4-client-blocked.png` |
+| P6 | C | Narendra | `curl -i http://10.7.29.229:3001/health` | **200** | `EC3-edge-allowed.png` |
+| P7 | C | Mohan | `curl -m 5 -i http://10.7.29.229:3001/health` · `nc -vz -w 3 10.7.29.229 3001` · `curl -s https://app.team1.test:8443/api/status` | timeout, fail, **still works via edge** | `EC4-client-blocked.png` |
 | P8 | C | Keshav, Mayank | `./scripts/rollback_pf.sh` | `rollback OK` | `EC5-rollback-ok.png` |
 | P9 | D | Keshav + Mohan | stop backend A → `./scripts/demo_lb.sh` (all B) → start A → wait 15 s → `demo_lb.sh` (A/B) | failover + recovery | `ED1-failover.png`, `ED2-recovery.png` |
-| P10 | E | Narendra → Keshav | copy `certs/app.crt app.key` to Keshav (`scp certs/app.* keshav@10.7.1.186:~/CN-Project-Naren/mac3-backend-a/certs/` after `mkdir -p` there, or AirDrop); Keshav `brew install nginx && ./scripts/configure_nginx.sh standby` | standby on 8443 | `EE1-standby.png` |
-| P11 | E | Mohan | `TTL=30 ./scripts/setup_dnsmasq.sh primary` ; terminal 1 `./scripts/demo_edge.sh`; terminal 2 `APP_IP=10.7.1.186 TTL=30 ./scripts/setup_dnsmasq.sh primary` | `edge=mac2` → `edge=standby` | `EE2-cutover.png` |
+| P10 | E | Narendra → Keshav | copy `certs/app.crt app.key` to Keshav (`scp certs/app.* keshav@10.7.29.229:~/CN-Project-Naren/mac3-backend-a/certs/` after `mkdir -p` there, or AirDrop); Keshav `brew install nginx && ./scripts/configure_nginx.sh standby` | standby on 8443 | `EE1-standby.png` |
+| P11 | E | Mohan | `TTL=30 ./scripts/setup_dnsmasq.sh primary` ; terminal 1 `./scripts/demo_edge.sh`; terminal 2 `APP_IP=10.7.29.229 TTL=30 ./scripts/setup_dnsmasq.sh primary` | `edge=mac2` → `edge=standby` | `EE2-cutover.png` |
 | P12 | F | Mohan | `./scripts/diagnose.sh` (healthy, all PASS) then ask a teammate to break one thing, run again | first FAIL names the layer | `EF1-diagnose-ok.png`, `EF2-diagnose-fault.png` |
 
 ## FINAL

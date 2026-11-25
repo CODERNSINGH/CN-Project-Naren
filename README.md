@@ -16,10 +16,10 @@ Campus Wi-Fi **10.7.0.0/19** · netmask `255.255.224.0` · router/gateway `10.7.
 
 | Mac | Owner | Role | IP | Folder |
 |---|---|---|---|---|
-| 1 | Mohan | DNS server (dnsmasq) + **test client** | `10.7.16.221` | `mac1-dns-client/` |
-| 2 | Narendra | **Edge**: nginx reverse proxy + load balancer + TLS + CA | `10.7.2.91` | `mac2-edge-lb/` |
-| 3 | Keshav | **Backend A** `:3001` (+ backup DNS, standby edge in Phase 2) | `10.7.1.186` | `mac3-backend-a/` |
-| 4 | Mayank | **Backend B** `:3002` | `10.7.8.104` | `mac4-backend-b/` |
+| 1 | Mohan | DNS server (dnsmasq) + **test client** | `10.7.9.43` | `mac1-dns-client/` |
+| 2 | Narendra | **Edge**: nginx reverse proxy + load balancer + TLS + CA | `10.7.7.27` | `mac2-edge-lb/` |
+| 3 | Keshav | **Backend A** `:3001` (+ backup DNS, standby edge in Phase 2) | `10.7.29.229` | `mac3-backend-a/` |
+| 4 | Mayank | **Backend B** `:3002` | `10.7.25.176` | `mac4-backend-b/` |
 
 The single source of truth is **`team.env`**. If a Mac's IP changes (DHCP), see §6.
 
@@ -50,17 +50,17 @@ Needs: Homebrew (https://brew.sh), Python 3, admin password. If a pop-up asks "a
 ### Keshav — Mac 3, Backend A
 ```bash
 cd ~/CN-Project-Naren/mac3-backend-a
-./scripts/my_ip.sh                  # must print 10.7.1.186
+./scripts/my_ip.sh                  # must print 10.7.29.229
 ./backend/run_backend.sh            # leave this terminal open: "Running on http://0.0.0.0:3001"
 # in a 2nd terminal:
-curl -i http://10.7.1.186:3001/api/status      # {"backend":"A",...} + header X-Backend: A
+curl -i http://10.7.29.229:3001/api/status      # {"backend":"A",...} + header X-Backend: A
 ```
 ### Mayank — Mac 4, Backend B
 ```bash
 cd ~/CN-Project-Naren/mac4-backend-b
-./scripts/my_ip.sh                  # must print 10.7.8.104
+./scripts/my_ip.sh                  # must print 10.7.25.176
 ./backend/run_backend.sh            # leave open: "Running on http://0.0.0.0:3002"
-curl -i http://10.7.8.104:3002/api/status      # X-Backend: B
+curl -i http://10.7.25.176:3002/api/status      # X-Backend: B
 ```
 > Mayank's last output showed `ping: No route to host` to the router → his Wi-Fi dropped for a moment. Re-join the Wi-Fi and re-run `./scripts/my_ip.sh`; the ping to the router must succeed.
 
@@ -68,14 +68,14 @@ curl -i http://10.7.8.104:3002/api/status      # X-Backend: B
 **Turn off Cloudflare WARP / any VPN / DNS-filter app first** — Mohan's DNS showed `127.0.2.2`, a local DNS proxy that would ignore our server (the scripts print a red WARNING if it is still on).
 ```bash
 cd ~/CN-Project-Naren/mac1-dns-client
-./scripts/my_ip.sh                  # must print 10.7.16.221
-./scripts/setup_dnsmasq.sh primary  # installs + starts dnsmasq; last lines must show 10.7.2.91
+./scripts/my_ip.sh                  # must print 10.7.9.43
+./scripts/setup_dnsmasq.sh primary  # installs + starts dnsmasq; last lines must show 10.7.7.27
 ```
 Then, once Narendra says "CA is being served":
 ```bash
 ./scripts/trust_ca.sh               # downloads + trusts the team CA
 ./scripts/set_dns.sh primary        # this Mac now resolves through itself (old DNS is saved, restore: ./scripts/set_dns.sh restore)
-dig app.team1.test                  # ANSWER: 10.7.2.91
+dig app.team1.test                  # ANSWER: 10.7.7.27
 ./scripts/demo_lb.sh                # PHASE 1 GATE: X-Backend alternates A,B,A,B
 ```
 
@@ -101,7 +101,7 @@ dig app.team1.test && ./scripts/demo_lb.sh
 | TLS proof (Task E) | Mohan | `./scripts/demo_tls.sh` | verify return code 0 |
 | Wireshark (Task G) | Mohan | see `mac1-dns-client/README.md` | `phase1.pcapng`, `tls12.pcapng` |
 | 5 failure demos | Mohan (+Keshav for #3) | `./scripts/failures.sh 1..5` | screenshots |
-| Backup DNS (Ext A) | Keshav | `./scripts/setup_dnsmasq.sh backup` | `dig @10.7.1.186` |
+| Backup DNS (Ext A) | Keshav | `./scripts/setup_dnsmasq.sh backup` | `dig @10.7.29.229` |
 | TTL (Ext B) | Mohan | `TTL=30 ./scripts/setup_dnsmasq.sh primary` + `demo_ttl.sh` | timeline |
 | Isolation (Ext C) | Keshav, Mayank | `./scripts/isolate_pf.sh 3001` / `3002` … `rollback_pf.sh` | blocked vs allowed |
 | HA failover (Ext D) | Keshav | stop/start Backend A | all B, then A/B |

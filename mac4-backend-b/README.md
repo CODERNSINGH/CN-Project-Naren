@@ -1,6 +1,6 @@
 # Mac 4 — Backend B (:3002)
 
-**Owner:** Mayank · **IP:** 10.7.8.104 · netmask 255.255.224.0 · gateway 10.7.0.1 (campus Wi-Fi, subnet 10.7.0.0/19) · all IPs: `../team.env`
+**Owner:** Mayank · **IP:** 10.7.25.176 · netmask 255.255.224.0 · gateway 10.7.0.1 (campus Wi-Fi, subnet 10.7.0.0/19) · all IPs: `../team.env`
 
 **Role:** application server instance B (`X-Backend: B`).
 
@@ -27,8 +27,8 @@ If your Mac's IP differs from `team.env`, tell the team (one person edits `team.
 ```
 Verify (second terminal here, and **from another Mac**):
 ```bash
-curl -i http://10.7.8.104:3002/api/status           # {"backend":"B",…} + header X-Backend: B
-curl -i http://10.7.8.104:3002/api/catalog          # Cache-Control: max-age=60 + ETag (same ETag as Backend A)
+curl -i http://10.7.25.176:3002/api/status           # {"backend":"B",…} + header X-Backend: B
+curl -i http://10.7.25.176:3002/api/catalog          # Cache-Control: max-age=60 + ETag (same ETag as Backend A)
 lsof -nP -iTCP:3002 -sTCP:LISTEN                 # must show *:3002
 ```
 Click "Allow" on the macOS incoming-connection pop-up for Python.
@@ -45,9 +45,9 @@ Stop both backends (Mac 3 and Mac 4 Ctrl+C) → 502 at the edge. Stop only B and
 ```bash
 ./scripts/isolate_pf.sh 3002                          # only Mac 2 may reach :3002
 # if the standby edge on Mac 3 must also reach it (Ext E):
-EXTRA_ALLOW=10.7.1.186 ./scripts/isolate_pf.sh 3002
+EXTRA_ALLOW=10.7.29.229 ./scripts/isolate_pf.sh 3002
 ```
-Demonstrate: Mac 2 `curl -i http://10.7.8.104:3002/health` → 200; Mac 1 → timeout; `https://app.team1.test:8443/api/status` still works.
+Demonstrate: Mac 2 `curl -i http://10.7.25.176:3002/health` → 200; Mac 1 → timeout; `https://app.team1.test:8443/api/status` still works.
 ```bash
 ./scripts/rollback_pf.sh                              # restore + "rollback OK"
 ```

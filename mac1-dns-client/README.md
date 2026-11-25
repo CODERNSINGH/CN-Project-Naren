@@ -1,6 +1,6 @@
 # Mac 1 — Private DNS Server + Test Client
 
-**Owner:** Mohan · **IP:** 10.7.16.221 · netmask 255.255.224.0 · gateway 10.7.0.1 (campus Wi-Fi, subnet 10.7.0.0/19) · all IPs: `../team.env`
+**Owner:** Mohan · **IP:** 10.7.9.43 · netmask 255.255.224.0 · gateway 10.7.0.1 (campus Wi-Fi, subnet 10.7.0.0/19) · all IPs: `../team.env`
 
 **Role:** runs **dnsmasq** (answers `app.team1.test` / `api.team1.test` → Mac 2's IP; Route 53 equivalent) and is the main **client** for demos, Wireshark and failure tests.
 
@@ -26,7 +26,7 @@ If your Mac's IP differs from `team.env`, tell the team (one person edits `team.
 ./scripts/setup_dnsmasq.sh primary       # installs dnsmasq, writes config, starts it with sudo, self-tests
 sudo lsof -nP -iUDP:53                   # dnsmasq listening
 ./scripts/set_dns.sh primary             # this Mac uses itself as resolver
-dig app.team1.test                       # SERVER: 10.7.16.221, ANSWER = 10.7.2.91
+dig app.team1.test                       # SERVER: 10.7.9.43, ANSWER = 10.7.7.27
 nslookup app.team1.test
 dscacheutil -q host -a name app.team1.test    # system resolver path (what curl/browsers use)
 ```
@@ -57,7 +57,7 @@ Browser: DevTools → Network → open `https://app.team1.test:8443/api/catalog`
 ```
 
 ### Task G — Wireshark evidence (GUI, interface en0)
-1. Start Wireshark on `en0` (capture filter `host 10.7.16.221 or host 10.7.2.91`).
+1. Start Wireshark on `en0` (capture filter `host 10.7.9.43 or host 10.7.7.27`).
 2. In Terminal:
    ```bash
    sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder     # force a real DNS query
@@ -72,7 +72,7 @@ Browser: DevTools → Network → open `https://app.team1.test:8443/api/catalog`
 ### Five required failure demos
 ```bash
 ./scripts/failures.sh 1      # wrong DNS server (auto-breaks and restores)
-# 2: on Mac 1:  APP_IP=10.7.8.104 ./scripts/setup_dnsmasq.sh primary   then   ./scripts/failures.sh 2
+# 2: on Mac 1:  APP_IP=10.7.25.176 ./scripts/setup_dnsmasq.sh primary   then   ./scripts/failures.sh 2
 #    restore:   ./scripts/setup_dnsmasq.sh primary   (+ flush client cache)
 # 3: Ctrl+C Backend A on Mac 3, then  ./scripts/failures.sh 3
 # 4: stop both backends, then          ./scripts/failures.sh 4     (502, DNS+TLS fine)
@@ -85,8 +85,8 @@ Screenshot each and write one sentence of "why" (see `Docs/CN_Project_Master.pdf
   ```bash
   ./scripts/set_dns.sh both                       # primary Mac 1, then backup
   sudo brew services stop dnsmasq                 # kill primary
-  dig +short app.team1.test @10.7.1.186        # backup answers
-  dig +tries=1 +time=2 app.team1.test @10.7.16.221    # primary: no response
+  dig +short app.team1.test @10.7.29.229        # backup answers
+  dig +tries=1 +time=2 app.team1.test @10.7.9.43    # primary: no response
   curl -sI https://app.team1.test:8443/ | head -1 # works after a short fallback delay
   sudo brew services start dnsmasq                # restore
   ```
@@ -94,11 +94,11 @@ Screenshot each and write one sentence of "why" (see `Docs/CN_Project_Master.pdf
   ```bash
   TTL=30 ./scripts/setup_dnsmasq.sh primary       # 30 s TTL
   # terminal A (client):  ./scripts/demo_ttl.sh
-  APP_IP=10.7.8.104 TTL=30 ./scripts/setup_dnsmasq.sh primary    # change record → old answer persists ≤30 s
+  APP_IP=10.7.25.176 TTL=30 ./scripts/setup_dnsmasq.sh primary    # change record → old answer persists ≤30 s
   sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder   # immediate change
   ./scripts/setup_dnsmasq.sh primary              # restore original record/TTL
   ```
-- **Ext E cutover:** `TTL=30 APP_IP=10.7.1.186 ./scripts/setup_dnsmasq.sh primary` (and on backup), watch `./scripts/demo_edge.sh` → `edge=mac2` flips to `edge=standby`.
+- **Ext E cutover:** `TTL=30 APP_IP=10.7.29.229 ./scripts/setup_dnsmasq.sh primary` (and on backup), watch `./scripts/demo_edge.sh` → `edge=mac2` flips to `edge=standby`.
 - **Ext F:** `./scripts/diagnose.sh` — read the first FAIL (IP→DNS→TCP→TLS→HTTP→backends).
 
 ## Be ready to explain (viva)
