@@ -141,3 +141,6 @@ Docs/  evidence/
 Edit `_shared/…` then run `./sync.sh` (copies into the four folders). Regenerate the diagram: `python3 _shared/diagram/build_excalidraw.py`.
 
 Deliverables map: Architecture doc = diagram + `Docs/CN_Project_Master.pdf` · Configuration bundle = each Mac's `generated/*.conf` + `scripts/` · Backend code = `_shared/backend/` · Evidence = `evidence/` · Phase 2 report = master PDF ch. 9 · Video = `VIDEO_SCRIPT.md`.
+
+Team:
+Mayank Gupta: 2401010267
