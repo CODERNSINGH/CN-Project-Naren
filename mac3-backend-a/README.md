@@ -76,3 +76,16 @@ Demonstrate:
 
 ## Be ready to explain (viva)
 Why bind 0.0.0.0 vs 127.0.0.1 · socket = IP+port+protocol · why different ports · what pf rules do (L3/L4, drop vs reject) · least privilege / cloud security groups · why the standby uses the same cert · TTL effects during cutover.
+
+## Backend A endpoints (added by Keshav)
+| Endpoint | Use in the demo |
+|---|---|
+| `GET /health` | `status`, `uptime_s`, `requests`. Uptime resets after a restart, so it timestamps HA failover (Ext D) |
+| `GET /api/whoami` | Shows `peer`, `real_ip`, `forwarded_for`, `forwarded_proto`. Via the edge, peer = Mac 2 and proto = `https`; directly, the forwarded fields are `null` (Ext C isolation) |
+| every response | `X-Backend: A` and `X-Response-Time-ms` headers |
+
+The terminal running `run_backend.sh` prints one line per request, `via=edge` or `via=direct`. Screenshot it next to the curl output as evidence.
+```bash
+curl -sk https://app.team1.test:8443/api/whoami   # through the edge
+curl -s  http://10.7.1.186:3001/api/whoami        # direct (blocked once isolate_pf.sh is on)
+```
