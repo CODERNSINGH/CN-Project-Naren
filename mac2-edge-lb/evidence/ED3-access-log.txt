@@ -1,0 +1,25 @@
+$ tail -n 24 "$(brew --prefix)/var/log/nginx/access.log"
+10.7.9.43 [25/Nov/2026:10:49:03 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.038
+10.7.9.43 [25/Nov/2026:10:53:27 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.046
+10.7.9.43 [25/Nov/2026:10:53:27 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.157
+10.7.9.43 [25/Nov/2026:10:53:27 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.088
+10.7.9.43 [25/Nov/2026:10:53:27 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.030
+10.7.9.43 [25/Nov/2026:10:53:27 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.020
+10.7.9.43 [25/Nov/2026:10:53:27 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.116
+10.7.9.43 [25/Nov/2026:10:59:50 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.116
+10.7.9.43 [25/Nov/2026:10:59:56 +0530] "HEAD /api/status HTTP/1.1" 200 backend=10.7.25.176:3002, 10.7.29.229:3001 xb=A rt=2.123
+10.7.9.43 [25/Nov/2026:11:04:19 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.122
+10.7.9.43 [25/Nov/2026:11:04:22 +0530] "HEAD /api/status HTTP/1.1" 200 backend=10.7.25.176:3002, 10.7.29.229:3001 xb=A rt=1.029
+10.7.9.43 [25/Nov/2026:11:04:46 +0530] "HEAD / HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.017
+10.7.9.43 [25/Nov/2026:11:04:57 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.052
+10.7.9.43 [25/Nov/2026:11:04:57 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.092
+10.7.9.43 [25/Nov/2026:11:04:57 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.027
+10.7.9.43 [25/Nov/2026:11:04:57 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.113
+10.7.9.43 [25/Nov/2026:11:04:57 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.029
+10.7.9.43 [25/Nov/2026:11:04:57 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.029
+10.7.9.43 [25/Nov/2026:11:05:19 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.134
+10.7.9.43 [25/Nov/2026:11:05:19 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.022
+10.7.9.43 [25/Nov/2026:11:05:19 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.155
+10.7.9.43 [25/Nov/2026:11:05:19 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.109
+10.7.9.43 [25/Nov/2026:11:05:19 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.25.176:3002 xb=B rt=0.077
+10.7.9.43 [25/Nov/2026:11:05:20 +0530] "GET /api/status HTTP/1.1" 200 backend=10.7.29.229:3001 xb=A rt=0.026

@@ -1,0 +1,2 @@
+$ pgrep -x nginx || echo "nginx is STOPPED (fault injected)"
+nginx is STOPPED (fault injected)

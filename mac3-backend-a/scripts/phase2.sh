@@ -34,6 +34,7 @@ pre_common() {
   if [ -s "$T" ] && [ "$(stat -f%z "$T")" -gt 60000 ]; then c_ok "screenshots work"; else
     c_bad "Screenshots may be blank. System Settings > Privacy & Security > Screen Recording > enable Terminal (restart Terminal)."; fi
   rm -f "$T"
+  c_info "ALSO: System Settings > Privacy & Security > Local Network > turn ON your terminal app (iTerm/Terminal/Ghostty). Without it LAN curl fails with 'Couldn't connect' after 2 ms."
 }
 mohan_0()    { pre_common 1; "$D/phase2_check.sh" || c_info "(NOT-ready lines are normal before stages 1/5)"; }
 narendra_0() { pre_common 2; pgrep -x nginx >/dev/null && c_ok "nginx running" || c_bad "nginx NOT running -> ./scripts/configure_nginx.sh"
@@ -65,7 +66,7 @@ mohan_1() {
 # ============================ STAGE 2 : EXT D ============================
 keshav_2() {
   pause "Mohan is ready. Enter = STOP Backend A."
-  pkill -f "python backend.py"; sleep 1
+  lsof -ti tcp:3001 -sTCP:LISTEN | xargs kill 2>/dev/null; sleep 2
   runc ED0-A-stopped 'lsof -nP -iTCP:3001 -sTCP:LISTEN || echo "port 3001 closed -> Backend A is DOWN"'
   shot ED0-A-stopped
   c_ok "TELL MOHAN: 'A is stopped'"
@@ -133,6 +134,8 @@ narendra_4() {
 mohan_4() {
   pause "WAIT for KESHAV + MAYANK ('pf is on') and NARENDRA ('edge test done')."
   runc EC4-client-blocked 'echo "--- direct to A (expect timeout)"; curl -m 5 -i http://$MAC3_IP:3001/health; echo "--- direct to B (expect timeout)"; curl -m 5 -i http://$MAC4_IP:3002/health; echo "--- nc A"; nc -vz -w 3 $MAC3_IP 3001; echo "--- via the edge (expect 200 JSON)"; curl -s $BASE_URL/api/status'
+  curl -s -m 3 "http://$MAC3_IP:3001/health" >/dev/null && c_bad "WARNING: Backend A answered DIRECTLY -> pf is NOT active on Mac 3. Re-run './scripts/phase2.sh 4' after Keshav says 'pf is on'."
+  curl -s -m 3 "http://$MAC4_IP:3002/health" >/dev/null && c_bad "WARNING: Backend B answered DIRECTLY -> pf is NOT active on Mac 4."
   shot EC4-client-blocked
   c_ok "TELL KESHAV + MAYANK: 'rollback pf now'"
 }
@@ -171,7 +174,8 @@ mohan_6() {
   runc EF1-diagnose-ok './diagnose.sh'; shot EF1-diagnose-ok
   c_ok "TELL NARENDRA: 'EF1 captured - break something'"
   pause "WAIT for NARENDRA: 'fault injected'."
-  runc EF2-diagnose-fault './diagnose.sh'; shot EF2-diagnose-fault
+  runc EF2-diagnose-fault './diagnose.sh'; grep -q FAIL "$EVID/EF2-diagnose-fault.txt" || c_bad "No FAIL in the output = Narendra's fault was NOT active. Ask him to stop nginx FIRST, then re-run './scripts/phase2.sh 6'."
+  shot EF2-diagnose-fault
   c_info "WRITE DOWN: which layer failed FIRST + the fix (for the report)."
   c_ok "TELL NARENDRA: 'EF2 captured - fix it'"
   pause "WAIT for NARENDRA: 'fixed'."

@@ -1,0 +1,11 @@
+$ echo "--- from the EDGE (expect 200)"; curl -i -m 5 http://$MAC3_IP:3001/health; echo; curl -i -m 5 http://$MAC4_IP:3002/health
+--- from the EDGE (expect 200)
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+curl: (7) Failed to connect to 10.7.29.229 port 3001 after 2 ms: Couldn't connect to server
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+curl: (7) Failed to connect to 10.7.25.176 port 3002 after 2 ms: Couldn't connect to server
