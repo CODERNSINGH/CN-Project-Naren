@@ -6,7 +6,7 @@ step "curl -v (TLS version, cipher, certificate verify result)"
 curl -sv -o /dev/null "$BASE_URL/api/status" 2>&1 | grep -E "Connected to|SSL connection|TLS|subject:|issuer:|SSL certificate verify|ALPN|HTTP/"
 
 step "openssl s_client (chain + 'Verify return code')"
-openssl s_client -connect "$APP_HOST:$HTTPS_PORT" -servername "$APP_HOST" </dev/null 2>/dev/null \
+openssl s_client -connect "$APP_HOST:$HTTPS_PORT" -servername "$APP_HOST" ${CA_PEM:+-CAfile "$CA_PEM"} </dev/null 2>/dev/null \
   | grep -E "subject=|issuer=|Protocol|Cipher|Verify return code|Verification"
 
 step "Force TLS 1.2 (so the Certificate message is visible in Wireshark)"

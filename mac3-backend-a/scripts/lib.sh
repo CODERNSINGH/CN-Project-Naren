@@ -62,3 +62,6 @@ runc() { local n="$1"; shift; { echo "\$ $*"; eval "$*"; } 2>&1 | tee "$EVID/$n.
 # pause MESSAGE -> wait for Enter (used as sync points between teammates)
 pause() { printf '\n\033[33m>>> %s\033[0m\n    Press Enter to continue... ' "$*"; read -r _; }
 has_ip() { ifconfig | grep -q "inet $1 "; }
+
+# openssl (LibreSSL) does NOT read the macOS keychain, so give it the team CA file explicitly (curl/browsers use the keychain).
+CA_PEM=""; for f in "$ROOT_DIR/ca.crt" "$ROOT_DIR/public/ca.crt"; do [ -f "$f" ] && CA_PEM="$f" && break; done

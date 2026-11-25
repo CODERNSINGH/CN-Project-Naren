@@ -23,7 +23,7 @@ step "2. TCP layer"
 chk "edge port $HTTPS_PORT open"   "nginx down, wrong port, pf/firewall, wrong bind" nc -z -w 3 "$MAC2_IP" "$HTTPS_PORT"
 
 step "3. TLS layer"
-VR="$(openssl s_client -connect "$MAC2_IP:$HTTPS_PORT" -servername "$APP_HOST" </dev/null 2>/dev/null | grep -i 'Verify return code')"
+VR="$(openssl s_client -connect "$MAC2_IP:$HTTPS_PORT" -servername "$APP_HOST" ${CA_PEM:+-CAfile "$CA_PEM"} </dev/null 2>/dev/null | grep -i 'Verify return code')"
 echo "$VR"
 echo "$VR" | grep -q "(ok)" && c_ok "PASS  certificate verifies" || { c_bad "FAIL  expired cert / SAN mismatch / CA not trusted / wrong cert-key pair"; fail=1; }
 

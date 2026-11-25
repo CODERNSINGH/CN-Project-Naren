@@ -31,7 +31,7 @@ case "${1:-}" in
 4)
   step "Observe: DNS + TCP + TLS fine, upstream dead -> 502"
   dig +short "$APP_HOST"
-  openssl s_client -connect "$APP_HOST:$HTTPS_PORT" -servername "$APP_HOST" </dev/null 2>/dev/null | grep -i "verify return\|Verification"
+  openssl s_client -connect "$APP_HOST:$HTTPS_PORT" -servername "$APP_HOST" ${CA_PEM:+-CAfile "$CA_PEM"} </dev/null 2>/dev/null | grep -i "verify return\|Verification"
   curl -si --max-time 15 "$BASE_URL/api/status" | head -12 ;;
 5)
   step "Observe: host reachable, port closed"
