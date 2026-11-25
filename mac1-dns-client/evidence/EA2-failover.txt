@@ -1,0 +1,13 @@
+$ echo "--- primary (expect: no servers could be reached)"; dig +tries=1 +time=2 $APP_HOST @$MAC1_IP | tail -3; echo "--- backup (expect: $MAC2_IP)"; dig +short $APP_HOST @$BACKUP_DNS_IP; echo "--- full request still works through fallback (time it):"; time curl -sI --max-time 15 $BASE_URL/ | head -1
+--- primary (expect: no servers could be reached)
+; <<>> DiG 9.10.6 <<>> +tries=1 +time=2 app.team1.test @10.7.9.43
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+--- backup (expect: 10.7.7.27)
+10.7.7.27
+--- full request still works through fallback (time it):
+HTTP/1.1 200 OK
+
+real	0m2.552s
+user	0m0.018s
+sys	0m0.017s

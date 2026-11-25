@@ -1,0 +1,35 @@
+$ echo "--- direct to A (expect timeout)"; curl -m 5 -i http://$MAC3_IP:3001/health; echo "--- direct to B (expect timeout)"; curl -m 5 -i http://$MAC4_IP:3002/health; echo "--- nc A"; nc -vz -w 3 $MAC3_IP 3001; echo "--- via the edge (expect 200 JSON)"; curl -s $BASE_URL/api/status
+--- direct to A (expect timeout)
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    72  100    72    0     0    290      0 --:--:-- --:--:-- --:--:--   291
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.14.3
+Date: Wed, 25 Nov 2026 05:37:15 GMT
+Content-Type: application/json
+Content-Length: 72
+Cache-Control: no-store
+X-Backend: A
+X-Response-Time-ms: 0.3
+Connection: close
+
+{"backend":"A","port":3001,"requests":25,"status":"up","uptime_s":1695}
+--- direct to B (expect timeout)
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:03 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:04 --:--:--     0100    70  100    70    0     0     17      0  0:00:04  0:00:04 --:--:--    17
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.12.9
+Date: Wed, 25 Nov 2026 05:37:19 GMT
+Content-Type: application/json
+Content-Length: 70
+Cache-Control: no-store
+X-Backend: B
+X-Response-Time-ms: 0.5
+Connection: close
+
+{"backend":"B","port":3002,"requests":6,"status":"up","uptime_s":144}
+--- nc A
+Connection to 10.7.29.229 port 3001 [tcp/redwood-broker] succeeded!
+--- via the edge (expect 200 JSON)
+{"backend":"B","status":"ok","time":1795585039}

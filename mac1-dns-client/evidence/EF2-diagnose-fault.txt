@@ -1,0 +1,32 @@
+$ ./diagnose.sh
+
+[1m== 0. LAN / IP layer ==[0m
+[32mPASS  ping gateway[0m
+[32mPASS  ping edge Mac 2[0m
+
+[1m== 1. DNS layer ==[0m
+resolver in use:
+  nameserver[0] : 10.7.9.43
+  nameserver[1] : 10.7.29.229
+[32mPASS  dig answers (NOERROR)[0m
+dig says app.team1.test = 10.7.7.27   (expected 10.7.7.27)
+[32mPASS  record points to an edge (primary or standby)[0m
+[32mPASS  system resolver agrees[0m
+
+[1m== 2. TCP layer ==[0m
+[32mPASS  edge port 8443 open[0m
+
+[1m== 3. TLS layer ==[0m
+Verify return code: 0 (ok)
+[32mPASS  certificate verifies[0m
+
+[1m== 4. HTTP / application layer (through the edge) ==[0m
+HTTP status: 200
+[32mPASS  200 via edge[0m
+
+[1m== 5. Backends directly (may be blocked on purpose by pf - Extension C) ==[0m
+[32mPASS  Backend A 10.7.29.229:3001[0m
+[32mPASS  Backend B 10.7.25.176:3002[0m
+
+[1m== 6. Logs ==[0m
+Mac 2: tail -f $(brew --prefix)/var/log/nginx/error.log      Mac 1: tail /tmp/dnsmasq.log

@@ -1,0 +1,16 @@
+[36mtime | system resolver (cached) | dig direct to Mac 1 (always fresh) | TTL left in dig answer[0m
+11:05:31  system=10.7.7.27        dig(ttl ip)=30 10.7.7.27
+11:05:36  system=10.7.7.27        dig(ttl ip)=30 10.7.7.27
+11:05:41  system=10.7.7.27        dig(ttl ip)=30 10.7.7.27
+11:05:46  system=10.7.7.27        dig(ttl ip)=30 10.7.7.27
+11:05:51  system=10.7.7.27        dig(ttl ip)=30 10.7.25.176
+11:05:57  system=10.7.7.27        dig(ttl ip)=30 10.7.25.176
+11:06:02  system=10.7.7.27        dig(ttl ip)=30 10.7.25.176
+11:06:07  system=10.7.7.27        dig(ttl ip)=30 10.7.25.176
+11:06:12  system=10.7.7.27        dig(ttl ip)=30 10.7.25.176
+11:06:17  system=10.7.7.27        dig(ttl ip)=30 10.7.25.176
+11:06:22  system=10.7.7.27        dig(ttl ip)=30 10.7.25.176
+11:06:27  system=10.7.25.176      dig(ttl ip)=30 10.7.25.176
+11:06:32  system=10.7.25.176      dig(ttl ip)=30 10.7.25.176
+11:06:37  system=10.7.25.176      dig(ttl ip)=30 10.7.25.176
+11:06:42  system=10.7.25.176      dig(ttl ip)=30 10.7.25.176

@@ -1,0 +1,15 @@
+[36mtime | edge | backend | resolved IP  (Ctrl+C to stop)[0m
+11:07:36  edge=mac2     backend=A  ip=10.7.7.27
+11:07:41  edge=mac2     backend=B  ip=10.7.7.27
+11:07:46  edge=mac2     backend=A  ip=10.7.7.27
+11:07:52  edge=mac2     backend=B  ip=10.7.7.27
+11:07:57  edge=mac2     backend=A  ip=10.7.7.27
+11:08:02  edge=mac2     backend=B  ip=10.7.7.27
+11:08:07  edge=mac2     backend=A  ip=10.7.7.27
+11:08:14  edge=?        backend=?  ip=10.7.7.27
+11:08:19  edge=standby  backend=B  ip=10.7.29.229
+11:08:24  edge=standby  backend=A  ip=10.7.29.229
+11:08:29  edge=standby  backend=B  ip=10.7.29.229
+11:08:34  edge=standby  backend=A  ip=10.7.29.229
+11:08:40  edge=standby  backend=B  ip=10.7.29.229
+11:08:45  edge=standby  backend=A  ip=10.7.29.229

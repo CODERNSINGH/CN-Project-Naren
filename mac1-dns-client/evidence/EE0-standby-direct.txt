@@ -1,0 +1,1 @@
+$ curl -sI --resolve $APP_HOST:$HTTPS_PORT:$STANDBY_EDGE_IP $BASE_URL/api/status | grep -i -E "HTTP/|x-edge|x-backend"

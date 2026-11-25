@@ -1,0 +1,5 @@
+$ echo primary:; dig +short $APP_HOST @$MAC1_IP; echo backup:; dig +short $APP_HOST @$BACKUP_DNS_IP
+primary:
+10.7.7.27
+backup:
+10.7.7.27

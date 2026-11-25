@@ -1,0 +1,8 @@
+$ ./demo_lb.sh
+[36mGET https://app.team1.test:8443/api/status  x6   (no -k: certificate is validated)[0m
+ 1  HTTP/1.1 200 OK    X-Backend: B   X-Edge: mac2
+ 2  HTTP/1.1 200 OK    X-Backend: A   X-Edge: mac2
+ 3  HTTP/1.1 200 OK    X-Backend: B   X-Edge: mac2
+ 4  HTTP/1.1 200 OK    X-Backend: A   X-Edge: mac2
+ 5  HTTP/1.1 200 OK    X-Backend: B   X-Edge: mac2
+ 6  HTTP/1.1 200 OK    X-Backend: A   X-Edge: mac2
