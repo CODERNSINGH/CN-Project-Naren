@@ -12,10 +12,10 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 
 | Mac | Owner | IP | Role |
 |---|---|---|---|
-| Mac 1 | Mohan | `10.7.9.43` | DNS server (dnsmasq) + main test client |
-| Mac 2 | Narendra | `10.7.7.27` | Edge: nginx reverse proxy, load balancer, TLS, private CA |
-| Mac 3 | Keshav | `10.7.29.229` | Backend A :3001 + backup DNS + standby edge |
-| Mac 4 | Mayank | `10.7.25.176` | Backend B :3002 |
+| Mac 1 | Mohan Kumar C R | `10.7.9.43` | DNS server (dnsmasq) + main test client |
+| Mac 2 | Narendra Singh (team lead) | `10.7.7.27` | Edge: nginx reverse proxy, load balancer, TLS, private CA |
+| Mac 3 | Keshav Rajput | `10.7.29.229` | Backend A :3001 + backup DNS + standby edge |
+| Mac 4 | Mayank Gupta | `10.7.25.176` | Backend B :3002 |
 
 ## 2. Result at a glance
 
@@ -72,8 +72,17 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 ![Keshav: IP 10.7.29.229, router ping OK](screenshots/p1-02-mac3-ip.jpeg)
 *Keshav: IP 10.7.29.229, router ping OK*
 
-![Mayank: IP 10.7.25.176, router ping OK](screenshots/p1-03-mac4-ip.jpeg)
-*Mayank: IP 10.7.25.176, router ping OK*
+![Mayank Gupta: IP 10.7.25.176, router ping OK](screenshots/p1-03-mac4-ip.jpeg)
+*Mayank Gupta: IP 10.7.25.176, router ping OK*
+
+![Mohan: fresh git clone of the repo](screenshots/p1-06-mac1-fresh-clone.jpeg)
+*Mohan: fresh git clone of the repo*
+
+![Mayank: IP check after the fresh clone](screenshots/p1-07-mac4-ip-after-clone.jpeg)
+*Mayank: IP check after the fresh clone*
+
+![Keshav: IP check after the fresh clone](screenshots/p1-08-mac3-ip-after-clone.jpeg)
+*Keshav: IP check after the fresh clone*
 
 ### Our own DNS server  `PASS`
 
