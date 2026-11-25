@@ -1,0 +1,19 @@
+# captured 2026-11-25 11:35:58 on Mac 2 (10.7.7.27)
+$ ./check_lan.sh
+
+== This Mac (copy into the IP inventory table) ==
+Interface : en0
+IPv4      : 10.7.7.27
+Netmask   : 255.255.224.0  (0xffffe000)
+Gateway   : 10.7.0.1
+MAC addr  : 9e:ed:71:95:bb:39
+Hostname  : Narendra-Singh-Macbook-924
+DNS in use: There aren't any DNS Servers set on Wi-Fi. 
+
+== Ping matrix from this Mac ==
+OK    Mac1 10.7.9.43
+OK    Mac2 10.7.7.27
+OK    Mac3 10.7.29.229
+OK    Mac4 10.7.25.176
+
+If a ping fails: same Wi-Fi? VPN off? Router 'client/AP isolation' off? (use a phone hotspot)

@@ -1,0 +1,10 @@
+# captured 2026-11-25 11:36:06 on Mac 2 (10.7.7.27)
+$ echo "--- dig to a DNS server that does not exist (expect: timed out)"; dig +time=2 +tries=1 $APP_HOST @${MAC1_IP%.*}.250 | tail -3; echo "--- the real DNS server and the edge are still reachable by IP"; ping -c 2 $MAC1_IP | tail -2; nc -vz -w 3 $MAC2_IP $HTTPS_PORT
+--- dig to a DNS server that does not exist (expect: timed out)
+; <<>> DiG 9.10.6 <<>> +time=2 +tries=1 app.team1.test @10.7.9.250
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+--- the real DNS server and the edge are still reachable by IP
+2 packets transmitted, 2 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 49.798/71.303/92.807/21.504 ms
+Connection to 10.7.7.27 port 8443 [tcp/pcsync-https] succeeded!

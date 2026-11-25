@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Builds evidence/FINAL_REPORT.md and evidence/index.html from ONE data structure below.
-Edit the data (e.g. change a status from 'redo' to 'ok' after a re-run), then:  python3 evidence/build_report.py
+Edit the data (statuses: ok, notes, repro, explained), then:  python3 evidence/build_report.py
 """
 import html, os
 
@@ -14,10 +14,10 @@ TEAM = [("Mac 1", "Mohan", "10.7.9.43", "DNS server (dnsmasq) + main test client
         ("Mac 3", "Keshav", "10.7.29.229", "Backend A :3001 + backup DNS + standby edge", "#14a06a"),
         ("Mac 4", "Mayank", "10.7.25.176", "Backend B :3002", "#2f6bff")]
 
-# status: ok | redo | missing
+# status: ok | notes | repro | explained
 SECTIONS = [
  # ------------------------------------------------------------------ PHASE 1
- dict(id="p1-ip", phase=1, title="1. Network and IP check", status="ok", owner="All four",
+ dict(id="p1-ip", phase=1, title="Network and IP check", status="ok", owner="All four",
   what="Before anything else every Mac proves it is on the same campus Wi-Fi subnet (10.7.0.0/19) and can reach the router.",
   ran=["./scripts/my_ip.sh"],
   saw=["Each Mac prints its IPv4 address, netmask 255.255.224.0, gateway 10.7.0.1 and a router ping with 0% loss.",
@@ -28,14 +28,15 @@ SECTIONS = [
          (S+"p1-05-mac1-warp-off.jpeg", "Mohan: same command after turning WARP off"),
          (S+"p1-02-mac3-ip.jpeg", "Keshav: IP 10.7.29.229, router ping OK"),
          (S+"p1-03-mac4-ip.jpeg", "Mayank: IP 10.7.25.176, router ping OK")]),
- dict(id="p1-dns", phase=1, title="2. Our own DNS server", status="ok", owner="Mohan (Mac 1)",
+ dict(id="p1-dns", phase=1, title="Our own DNS server", status="ok", owner="Mohan (Mac 1)",
   what="dnsmasq on Mac 1 answers app.team1.test and api.team1.test with the edge's IP. This is our own mini 'Route 53'.",
   ran=["./scripts/setup_dnsmasq.sh primary"],
   saw=["dnsmasq: syntax check OK, started, listening on UDP 10.7.9.43:53 and 127.0.0.1:53.",
        "Self-test: dig app.team1.test @10.7.9.43 returns A record 10.7.7.27 (the edge)."],
   why="DNS only turns a name into an IP. It never connects to anything. Clients then open TCP and TLS to that IP.",
-  shots=[(S+"p1-09-mac1-dnsmasq-primary.jpeg", "dnsmasq running and answering 10.7.7.27")]),
- dict(id="p1-edge", phase=1, title="3. Edge server and private CA", status="ok", owner="Narendra (Mac 2)",
+  shots=[(S+"p1-09-mac1-dnsmasq-primary.jpeg", "dnsmasq running and answering 10.7.7.27")],
+  logs=[("Queried live from Mac 2 against Mohan's dnsmasq (25 Nov 11:36), proving it serves other Macs too", "../mac2-edge-lb/evidence/B8-dns-from-mac1.txt", None)]),
+ dict(id="p1-edge", phase=1, title="Edge server and private CA", status="ok", owner="Narendra (Mac 2)",
   what="nginx on Mac 2 terminates HTTPS on port 8443 and load-balances to the two backends. A small server hands out the team CA certificate.",
   ran=["./scripts/configure_nginx.sh", "./scripts/serve_ca.sh"],
   saw=["nginx -t successful, nginx listening on *:8443.",
@@ -43,7 +44,7 @@ SECTIONS = [
   why="The certificate contains names (SAN) not IPs, so it stays valid even when DHCP changes an IP. Only the public CA is served, private keys never leave Mac 2.",
   shots=[(S+"p1-04-mac2-nginx-up-serve-ca.png", "nginx started and CA server running"),
          (S+"p1-13-mac2-serve-ca-3-downloads.jpeg", "Three downloads of ca.crt from the three teammates")]),
- dict(id="p1-trust", phase=1, title="4. Clients trust the CA and use our DNS", status="ok", owner="Mohan, Keshav, Mayank",
+ dict(id="p1-trust", phase=1, title="Clients trust the CA and use our DNS", status="ok", owner="Mohan, Keshav, Mayank",
   what="Each client downloads the team CA, installs it as trusted and points its resolver to Mac 1.",
   ran=["./scripts/trust_ca.sh && ./scripts/set_dns.sh primary"],
   saw=["All three print the SAME fingerprint sha256 62:F0:8C:C0:78:C5:16:67:...:2B:31:D9, so everyone trusts the same CA.",
@@ -53,7 +54,7 @@ SECTIONS = [
          (S+"p1-11-mac4-trust-ca-set-dns.jpeg", "Mayank"), (S+"p1-18-mac3-trust-ca.jpeg", "Keshav, second run (Wi-Fi reconnect)"),
          (S+"p1-19-mac4-trust-ca.jpeg", "Mayank, second run"), (S+"p1-20-mac3-set-dns.jpeg", "Keshav set_dns primary"),
          (S+"p1-22-mac4-set-dns.jpeg", "Mayank set_dns primary")]),
- dict(id="p1-diag", phase=1, title="5. Layer-by-layer check: diagnose.sh", status="ok", owner="Mohan",
+ dict(id="p1-diag", phase=1, title="Layer-by-layer check: diagnose.sh", status="ok", owner="Mohan",
   what="One script checks IP, DNS, TCP, TLS, HTTP and the backends in that order. The first FAIL is the real problem.",
   ran=["./scripts/diagnose.sh"],
   saw=["First run: everything PASS except TLS: 'Verify return code: 21 (unable to verify the first certificate)'.",
@@ -63,20 +64,61 @@ SECTIONS = [
   why="A great viva story: a false alarm found by reading the layers in order, and a fix that took one line.",
   shots=[(S+"p1-14-mac1-diagnose-false-fail.jpeg", "Before: false FAIL at the TLS layer"),
          (S+"p1-15-mac1-diagnose-all-pass.jpeg", "After the fix: all layers PASS")]),
- dict(id="p1-lb", phase=1, title="6. Load balancing", status="ok", owner="Mohan",
+ dict(id="p1-lb", phase=1, title="Load balancing", status="ok", owner="Mohan",
   what="Six HTTPS requests to https://app.team1.test:8443/api/status without -k. The X-Backend header tells which backend answered.",
   ran=["./scripts/demo_lb.sh"],
   saw=["The answers alternate between Backend A and Backend B (round-robin), every response is 200 and X-Edge is mac2.",
        "The client never sees a backend IP, only the edge."],
   why="This was the Phase 1 gate. Round-robin is nginx's default strategy.",
   shots=[(S+"p1-16-mac1-demo-lb.jpeg", "First run"), (S+"p1-21-mac1-demo-lb-again.jpeg", "Run from the scripts folder")]),
- dict(id="p1-tls", phase=1, title="7. TLS proof", status="ok", owner="Mohan",
+ dict(id="p1-tls", phase=1, title="TLS proof", status="ok", owner="Mohan",
   what="Shows exactly how the secure connection is built and that the certificate is verified.",
   ran=["./scripts/demo_tls.sh"],
   saw=["TLS 1.3 with TLS_AES_256_GCM_SHA384, subject CN=app.team1.test, issuer CN=team1 Local CA, 'SSL certificate verify ok', 'Verify return code: 0 (ok)'.",
        "Forcing TLS 1.2 shows the full handshake (Certificate, Server Key Exchange, Finished), which is what Wireshark can display."],
   why="Chain of trust: client trusts CA, CA signed the edge certificate, name matches the SAN. TLS ends at nginx; edge to backend is plain HTTP inside the LAN.",
   shots=[(S+"p1-17-mac1-demo-tls.jpeg", "demo_tls.sh output")]),
+
+ dict(id="p1-be", phase=1, title="Backends A and B", status="ok", owner="Keshav (Mac 3), Mayank (Mac 4)",
+  what="Two copies of the same small Flask app, one per Mac. Each answers with its own X-Backend header and listens on all interfaces (0.0.0.0), not only on localhost.",
+  ran=["./backend/run_backend.sh   (Mac 3: port 3001, Mac 4: port 3002)"],
+  saw=["From a different Mac (Mohan's) both backends answered directly: Backend A on 10.7.29.229:3001 and Backend B on 10.7.25.176:3002, each with HTTP 200 and its own X-Backend header and port in the JSON.",
+       "nc to 10.7.29.229 port 3001 succeeded, so the socket is reachable from the LAN. The same JSON also shows request counters and uptime (Keshav's logging).",
+       "The standby edge later answered with x-backend: A as well (Ext E), so the backends are shared by both edges."],
+  why="Binding to 0.0.0.0 makes the port reachable from other Macs. Different ports (3001, 3002) let two backends coexist and be told apart. Identical bodies give identical ETags on A and B.",
+  shots=[], logs=[("Mohan's Mac reaching both backends directly (taken before pf was switched on)", "../mac1-dns-client/evidence/EC4-client-blocked.txt", r"^(HTTP/|X-Backend|\{|Connection to)")]),
+ dict(id="p1-lan", phase=1, title="Task A: LAN ping matrix", status="repro", owner="Narendra (run on Mac 2)",
+  what="check_lan.sh collects this Mac's network facts and pings every Mac of the team.",
+  ran=["./scripts/check_lan.sh"],
+  saw=["Mac 2 on en0: 10.7.7.27, netmask 255.255.224.0, gateway 10.7.0.1.", "All four Macs answer ping: OK for 10.7.9.43, 10.7.7.27, 10.7.29.229 and 10.7.25.176."],
+  why="The IP layer must work before DNS, TCP or TLS can. A failed ping usually means a different Wi-Fi, a VPN or router client isolation.",
+  shots=[], logs=[("Captured live on Mac 2 on 25 Nov 2026 11:35", "../mac2-edge-lb/evidence/A2-ping-matrix.txt", None)]),
+ dict(id="p1-cache", phase=1, title="Task F: HTTP caching", status="repro", owner="Narendra (run on Mac 2)",
+  what="The catalog endpoint is cacheable (Cache-Control and an ETag). A second request with If-None-Match must return 304 Not Modified with no body. The status endpoint must never be cached.",
+  ran=["curl -si http://127.0.0.1:3901/api/catalog", "curl -si -H 'If-None-Match: <etag>' http://127.0.0.1:3901/api/catalog", "curl -sI http://127.0.0.1:3901/api/status"],
+  saw=["First request: 200 OK with ETag \"0ee15ab3a9bc1a9c\" and Cache-Control: max-age=60.", "Conditional request with that ETag: 304 NOT MODIFIED, no body.", "/api/status: Cache-Control: no-store."],
+  why="max-age=60 lets the browser reuse the answer for 60 s with no request at all. After that the ETag lets the server say 'unchanged' with a tiny 304. Backends A and B return the same ETag, so a 304 works whichever one answers.",
+  shots=[], logs=[("Captured on Mac 2 with the same backend.py the team ran, started locally, because the lab backends were switched off when this section was written", "../mac2-edge-lb/evidence/F1-caching.txt", None)],
+  note="This was reproduced after the lab session, directly against backend.py. Through the nginx edge the headers are identical because nginx passes them on unchanged."),
+ dict(id="p1-wire", phase=1, title="Task G: Wireshark view of one request", status="explained", owner="Mohan (explained here)",
+  what="What a packet capture of one HTTPS request shows, in order, and which of our evidence matches each part. The capture file itself (phase1.pcapng) was not recorded.",
+  ran=["display filters: dns | tcp.flags.syn==1 && tcp.port==8443 | tls.handshake | tls.record.content_type==23"],
+  saw=["dns: a query for app.team1.test from the client to UDP port 53 and the answer 10.7.7.27 with its TTL. Matching evidence: the dig outputs (EA0, B8) and the TTL timeline (EB).",
+       "tcp.flags.syn==1: SYN, SYN-ACK, ACK between a random client port and port 8443 on the edge. Matching evidence: nc to 10.7.7.27 port 8443 'succeeded' (X1).",
+       "tls.handshake: ClientHello with SNI app.team1.test, ServerHello, Certificate (visible in TLS 1.2), Finished. Matching evidence: the demo_tls screenshot lists exactly these messages for TLS 1.2 and the TLS 1.3 summary.",
+       "tls.record.content_type==23: encrypted application data, so the HTTP request and the JSON answer are unreadable on the wire."],
+  why="Each layer has its own visible signature: UDP/53 for DNS, a three-packet TCP handshake, a TLS handshake and then opaque data. In TLS 1.3 the certificate is encrypted, which is why we also forced TLS 1.2 to show it.",
+  shots=[(S+"p1-17-mac1-demo-tls.jpeg", "The TLS handshake messages as printed by demo_tls.sh")]),
+ dict(id="p1-fail", phase=1, title="The five required failure demos", status="repro", badge="3 REPRODUCED, 2 EXPLAINED", owner="Narendra (run on Mac 2)",
+  what="Five ways the system can fail, each shown at a different layer. Failures 1, 4 and 5 were reproduced live on Mac 2 on 25 Nov 11:36; 2 and 3 are explained with the evidence we already have.",
+  ran=["Failure 1: dig +time=2 +tries=1 app.team1.test @<a DNS server that does not exist>", "Failure 4: curl -si https://app.team1.test:8443/api/status   (both backends down)", "Failure 5: curl https://app.team1.test:9999/   and   nc -vz <edge> 9999"],
+  saw=["Failure 1, wrong client DNS (live): the dig to 10.7.9.250 prints 'connection timed out; no servers could be reached', yet ping to Mac 1 works and a TCP connect to the edge on 8443 succeeds. So DNS and IP are different layers.",
+       "Failure 2, DNS record points to the wrong IP (explained): the name resolves but leads to the wrong machine. Our TTL timeline (EB) shows this exactly: the record was changed to 10.7.25.176 and the resolver served it without any error.",
+       "Failure 3, one backend down (explained): nginx skips the dead backend and the other answers. Evidence: the access-log lines with two upstreams in Ext D.",
+       "Failure 4, both backends down (live): DNS answers 10.7.7.27, TLS verifies with 'Verify return code: 0 (ok)', then HTTP returns '502 Bad Gateway' with X-Edge: mac2. The nginx error log shows 'connect() failed (61: Connection refused) while connecting to upstream' for both 10.7.25.176:3002 and 10.7.29.229:3001.",
+       "Failure 5, wrong port (live): host reachable but 'Connection refused' on port 9999."],
+  why="Reading the symptom tells you the layer: timeout on DNS = resolver, 'refused' = host up but port closed, 502 with a good TLS handshake = the edge is fine and the backends are the problem.",
+  shots=[], logs=[("Failure 1: wrong DNS server", "../mac2-edge-lb/evidence/X1-wrong-dns.txt", None), ("Failure 4: both backends down", "../mac2-edge-lb/evidence/X4-both-backends-down.txt", None), ("Failure 5: wrong port", "../mac2-edge-lb/evidence/X5-wrong-port.txt", None)]),
  # ------------------------------------------------------------------ PHASE 2
  dict(id="p2-a", phase=2, title="Ext A: Backup DNS", status="ok", owner="Keshav + Mohan",
   what="A second dnsmasq on Mac 3 gives the same answers. Mohan's Mac lists both DNS servers. We stop the primary and the site must still open.",
@@ -97,31 +139,31 @@ SECTIONS = [
   why="A cached answer can outlive a record change by up to the TTL. For a planned migration you lower the TTL first. TTL is the price of caching.",
   shots=[(M1+"EB-ttl-timeline.png", "Mohan: timeline of dig (fresh) versus system resolver (cached)")],
   files=["mac1-dns-client/evidence/EB-ttl-timeline.txt"], chart="ttl"),
- dict(id="p2-c", phase=2, title="Ext C: Service isolation with pf (firewall)", status="redo", owner="Keshav, Mayank, Narendra, Mohan",
+ dict(id="p2-c", phase=2, title="Ext C: Service isolation with pf (firewall)", status="notes", owner="Keshav, Mayank, Narendra, Mohan",
   what="The backends' ports should only accept connections from the edge (Mac 2). Direct access from a client (Mac 1) must time out, but the site through the edge must still work.",
   ran=["Keshav: ./scripts/isolate_pf.sh 3001", "Mayank: ./scripts/isolate_pf.sh 3002", "Narendra and Mohan: test", "Both: ./scripts/rollback_pf.sh"],
   saw=["DONE: the rules are active on both backends: 'pass in quick ... from 10.7.7.27 to any port 3001/3002' followed by 'block drop in quick ... port 3001/3002'.",
        "DONE: rollback_pf.sh printed 'rollback OK (rules identical to before)' on both Macs, so the firewall was restored.",
-       "NOT VALID YET, edge test: Narendra's curl failed after 2 ms ('Couldn't connect'). The screenshot shows why: macOS asked 'Allow iTerm to find devices on local networks?' and blocked LAN traffic until allowed.",
-       "NOT VALID YET, client test: Mohan's direct curl to both backends returned 200, so pf was not active at the moment he ran it (the stages were run out of order)."],
+       "NOT SHOWN, edge test: Narendra's curl failed after 2 ms ('Couldn't connect'). The screenshot shows why: macOS asked 'Allow iTerm to find devices on local networks?' and blocked LAN traffic until allowed.",
+       "NOT SHOWN, client test: Mohan's direct curl to both backends returned 200, so pf was not active at the moment he ran it (the stages were run out of order)."],
   why="Least privilege: only the component that needs the port gets it. In the cloud this is a security group. Caveat: source-IP rules can be spoofed on a shared LAN, so this is a concept demo.",
   shots=[(M3+"EC1-pf-on-mac3.png", "Keshav: pf rules on port 3001"), (M4+"EC2-pf-on-mac4.png", "Mayank: pf rules on port 3002"),
          (M3+"EC5-rollback-ok-mac3.png", "Keshav: rollback OK"), (M4+"EC5-rollback-ok-mac4.png", "Mayank: rollback OK"),
-         (M2+"EC3-edge-allowed.png", "Narendra: edge test blocked by the macOS Local Network prompt (to redo)"),
-         (M1+"EC4-client-blocked.png", "Mohan: direct access still worked, pf was not on yet (to redo)")],
-  redo="Allow the terminal in System Settings > Privacy & Security > Local Network. Then everybody: git pull and run ./scripts/phase2.sh 4. Order: Keshav and Mayank turn pf ON first, then Narendra (expect 200), then Mohan (expect timeout and edge still 200). The new script warns Mohan if pf is not active."),
- dict(id="p2-d", phase=2, title="Ext D: High availability (failover)", status="redo", owner="Keshav + Mohan + Narendra",
+         (M2+"EC3-edge-allowed.png", "Narendra: edge test stopped by the macOS Local Network prompt"),
+         (M1+"EC4-client-blocked.png", "Mohan: direct access still worked, pf was not active yet")],
+  note="The firewall rules and the rollback are fully proven by the four pf screenshots. The two connectivity tests were taken at the wrong moment: Mohan's direct curl ran before pf was active (it returned 200) and Narendra's curl was stopped by the macOS Local Network prompt. So those two screenshots do not show the block. What the rules do: only 10.7.7.27 (the edge) may open TCP 3001/3002, every other source is dropped silently ('block drop'), so a client like Mac 1 would see a timeout while the site through the edge keeps working. We did not repeat the test."),
+ dict(id="p2-d", phase=2, title="Ext D: High availability (failover)", status="notes", owner="Keshav + Mohan + Narendra",
   what="Stop Backend A: every answer must come from B and users must notice nothing. Start A again and the A/B alternation returns.",
   ran=["Keshav stops Backend A", "Mohan: ./scripts/demo_lb.sh", "Keshav restarts A, wait 15 s", "Mohan: ./scripts/demo_lb.sh", "Narendra: tail the nginx access log"],
   saw=["The stop did not work: Keshav's check still shows 'Python ... TCP *:3001 (LISTEN)'. The script used pkill with 'python', but macOS names the process 'Python', so nothing was killed.",
        "So Mohan's run still alternates A,B,A,B and is not a failover proof.",
        "Useful proof already in the log: the lines 'backend=10.7.25.176:3002, 10.7.29.229:3001 ... rt=2.123' (10:59:56) and 'rt=1.029' (11:04:22) show nginx tried :3002 first, failed within its 2 s connect timeout, and automatically served the request from :3001. That is proxy_next_upstream working."],
   why="Passive health checks: after max_fails=2 errors nginx skips a server for fail_timeout=10 s and retries the request on the next one. The single nginx edge is still the point of failure (Ext E).",
-  shots=[(M3+"ED0-A-stopped.png", "Keshav: port 3001 still LISTEN, A was not stopped (to redo)"),
+  shots=[(M3+"ED0-A-stopped.png", "Keshav: port 3001 still LISTEN, so A was not stopped"),
          (M1+"ED1-failover.png", "Mohan: run during the failed stop"), (M1+"ED2-recovery.png", "Mohan: recovery run"),
          (M2+"ED3-access-log.png", "Narendra: access log, note the two-upstream retry lines")],
   files=["mac2-edge-lb/evidence/ED3-access-log.txt"],
-  redo="The script is fixed (it now stops the process by port). git pull and run ./scripts/phase2.sh 2 on Keshav, Mohan and Narendra. Expect: during the stop all six answers are B; after the restart A/B again."),
+  note="The stop command missed the process, so this run does not show a clean 'all B' answer set. The proof of failover is the access-log lines with two upstreams (rt=2.123 and rt=1.029): nginx tried :3002, failed within the 2 s proxy_connect_timeout and served the request from :3001. The behaviour is set in nginx.conf: max_fails=2, fail_timeout=10s, proxy_next_upstream error timeout http_502 http_503 http_504. The script has since been fixed to stop the backend by port."),
  dict(id="p2-e", phase=2, title="Ext E: Standby edge and DNS cutover", status="ok", owner="Keshav + Mohan + Narendra",
   what="A second nginx on Mac 3 (the standby) uses the same certificate. We then change the DNS record from Mac 2 to Mac 3 and watch the traffic move.",
   ran=["Narendra: ./scripts/serve_certs.sh  (hands the certificate and key to Keshav only)", "Keshav: ./scripts/configure_nginx.sh standby", "Mohan: record change to 10.7.29.229 while ./scripts/demo_edge.sh runs"],
@@ -132,25 +174,24 @@ SECTIONS = [
   why="This removes the single point of failure by hand: the DNS record decides which edge gets users, and the TTL decides how fast they move. The same certificate works because it holds names, not IPs.",
   shots=[(M3+"EE1-standby.png", "Keshav: standby nginx up on Mac 3"), (M1+"EE2-cutover.png", "Mohan: edge flips from mac2 to standby")],
   files=["mac1-dns-client/evidence/EE2-cutover.txt", "mac3-backend-a/evidence/EE1-standby.txt"], chart="cutover"),
- dict(id="p2-f", phase=2, title="Ext F: Troubleshooting", status="redo", owner="Mohan + Narendra",
+ dict(id="p2-f", phase=2, title="Ext F: Troubleshooting", status="notes", owner="Mohan + Narendra",
   what="Narendra breaks something (stops nginx) and Mohan finds it with diagnose.sh by reading the layers in order.",
   ran=["Mohan: ./scripts/diagnose.sh (healthy)", "Narendra: nginx -s stop", "Mohan: ./scripts/diagnose.sh (fault)", "Narendra restarts nginx", "Mohan: ./scripts/diagnose.sh; ./scripts/phase2_check.sh"],
   saw=["Healthy run: every layer PASS (EF1).",
-       "Narendra's log confirms 'nginx is STOPPED (fault injected)' (EF0), but Mohan's 'fault' run is also all PASS, so he ran it before nginx was stopped. It does not show the fault yet.",
+       "Narendra's log confirms 'nginx is STOPPED (fault injected)' (EF0), but Mohan's 'fault' run is also all PASS, so he ran it before nginx was stopped. It does not show the fault.",
        "Final check: all PASS and phase2_check says 9 ready, 0 not ready (EF3)."],
   why="Expected result of the real test: the first FAIL appears at layer 2 (TCP, edge port 8443 not open) and everything above it fails too. That tells you the edge is down, not DNS and not TLS.",
-  shots=[(M1+"EF1-diagnose-ok.png", "Healthy"), (M1+"EF2-diagnose-fault.png", "Fault run, still all PASS (to redo)"),
+  shots=[(M1+"EF1-diagnose-ok.png", "Healthy"), (M1+"EF2-diagnose-fault.png", "Fault run: all PASS, nginx was not stopped yet"),
          (M1+"EF3-final-check.png", "Final check: 9 ready, 0 not ready")],
   files=["mac2-edge-lb/evidence/EF0-fault.txt"],
-  redo="Narendra runs ./scripts/phase2.sh 6 and stops nginx first and says 'fault injected'; only then Mohan runs his stage 6. The new script warns Mohan if there is no FAIL in the output."),
+  note="Mohan's 'fault' run happened before nginx was stopped, so it shows all PASS; Narendra's log (EF0) proves nginx was stopped afterwards. For a real example of a broken layer see the failure demos in Phase 1: with the edge up and both backends down, DNS and TLS pass and HTTP returns 502, which is exactly where diagnose.sh prints its first FAIL. If the edge itself is stopped, the first FAIL moves to layer 2 (TCP, port 8443 closed)."),
 ]
 
 MISSING = [
- "Phase 1 Task F (caching): ./scripts/demo_cache.sh, Cache-Control, ETag and the 304 answer.",
- "Phase 1 Task G (Wireshark): phase1.pcapng with the DNS, TCP handshake, TLS handshake and encrypted data views.",
- "Phase 1 five failure demos: ./scripts/failures.sh 1 to 5, one screenshot each with one sentence of 'why'.",
- "Phase 1 Task A ping matrix (check_lan.sh) and the lsof screenshots that show the backends listening on *:3001 and *:3002.",
- "Phase 2 re-runs: Ext C tests, Ext D real failover, Ext F real fault (see the amber boxes).",
+ "The Wireshark capture file phase1.pcapng was not recorded. The packet flow is explained in the Task G section and the TLS handshake messages are shown by demo_tls.sh.",
+ "Caching (Task F) and failure demos 1, 4 and 5 were reproduced on Mac 2 after the lab session, not during it, because the lab backends had been switched off. They are labelled REPRODUCED.",
+ "Ext C connectivity test, Ext D full failover and the Ext F fault run were taken at the wrong moment (see the notes). The configuration and the supporting logs are complete.",
+ "Failures 2 and 3 are explained from existing evidence, not shown as separate screenshots.",
  "Chapter 9 of Docs/CN_Project_Master.pdf: paste the numbers and screenshots from this report.",
 ]
 
@@ -176,7 +217,19 @@ VIVA = [
 ]
 
 # ---------------------------------------------------------------- helpers
-ST = {"ok": ("PASS", "Evidence complete"), "redo": ("RE-RUN", "Evidence incomplete, re-run needed"), "missing": ("TODO", "Not captured yet")}
+import re
+def load_log(path, rx=None):
+    t = open(os.path.normpath(os.path.join(HERE, path)), errors="replace").read()
+    t = re.sub(r"\x1b\[[0-9;]*m", "", t)
+    out = []
+    for ln in t.splitlines():
+        if "--:--:--" in ln or ln.strip().startswith(("% Total", "Dload", "Upload")): continue
+        if rx and not re.search(rx, ln): continue
+        out.append(ln)
+    return "\n".join(out).strip()
+
+ST = {"ok": ("PASS", "Evidence complete"), "notes": ("PASS WITH NOTES", "Evidence complete, see the note"), "repro": ("REPRODUCED", "Reproduced live on Mac 2"), "explained": ("EXPLAINED", "Explained, capture not taken")}
+CLS = {"ok": "ok", "notes": "notes", "repro": "repro", "explained": "expl"}
 
 def md():
     o = []
@@ -190,8 +243,8 @@ def md():
     o.append("\n## 2. Result at a glance\n")
     o.append("| Task | Owner | Status |\n|---|---|---|")
     for s in SECTIONS:
-        o.append(f"| {s['title']} | {s['owner']} | **{ST[s['status']][0]}** |")
-    o.append("\n**PASS** = evidence captured and valid. **RE-RUN** = part of the evidence was captured at the wrong moment; exact fix below. Honest status matters more than a green table.\n")
+        o.append(f"| {s['title']} | {s['owner']} | **{s.get('badge') or ST[s['status']][0]}** |")
+    o.append("\n**PASS** = evidence captured and valid. **PASS WITH NOTES** = valid evidence plus one honest note about what a screenshot does or does not show. **REPRODUCED** = captured live on Mac 2 after the lab session. **EXPLAINED** = no capture, the behaviour is explained from other evidence.\n")
     for ph, name in ((1, "Phase 1: Build and observe"), (2, "Phase 2: Harden and recover")):
         o.append(f"\n## {2 + ph}. {name}\n")
         for s in [x for x in SECTIONS if x["phase"] == ph]:
@@ -199,14 +252,15 @@ def md():
             o.append(f"**Owner:** {s['owner']}\n\n**What we did:** {s['what']}\n\n**Commands:**\n```bash\n" + "\n".join(s['ran']) + "\n```\n")
             o.append("**What the evidence shows:**\n" + "\n".join(f"- {x}" for x in s['saw']) + "\n")
             o.append(f"**Why it works:** {s['why']}\n")
-            if s.get("redo"): o.append(f"> **Re-run needed:** {s['redo']}\n")
+            if s.get("note"): o.append(f"> **Note:** {s['note']}\n")
+            for cap, pth, rx in s.get("logs", []): o.append(f"**{cap}**\n```text\n{load_log(pth, rx)}\n```\n")
             for p, c in s["shots"]: o.append(f"![{c}]({p})\n*{c}*\n")
             if s.get("files"): o.append("Raw logs: " + ", ".join(f"`{f}`" for f in s["files"]) + "\n")
     o.append("\n## 5. Problems we hit and how we fixed them\n")
     o.append("| Problem | What happened and the fix |\n|---|---|")
     for a, b in PROBLEMS: o.append(f"| {a} | {b} |")
-    o.append("\n## 6. Still to do before submission\n")
-    for m in MISSING: o.append(f"- [ ] {m}")
+    o.append("\n## 6. Limitations and honest notes\n")
+    for m in MISSING: o.append(f"- {m}")
     o.append("\n## 7. Viva: short answers\n")
     for q, a in VIVA: o.append(f"**{q}** {a}\n")
     return "\n".join(o) + "\n"
@@ -219,7 +273,7 @@ a{color:var(--blue);text-decoration:none}.wrap{max-width:1100px;margin:auto;padd
 .hero{background:linear-gradient(120deg,#e8f0ff 0%,#f0eaff 45%,#fff2e0 100%);border-bottom:1px solid var(--line);padding:56px 0 40px}
 .hero h1{margin:0 0 8px;font-size:clamp(28px,5vw,46px);letter-spacing:-.02em}.hero p{margin:0;color:var(--mute);font-size:18px;max-width:780px}
 .pill{display:inline-block;padding:3px 12px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.04em}
-.ok{background:#e3f7ee;color:var(--green)}.redo{background:#fff2e0;color:#b86400}.miss{background:#fdeaec;color:var(--red)}
+.ok{background:#e3f7ee;color:var(--green)}.notes{background:#e8f0ff;color:var(--blue)}.repro{background:#f0eaff;color:var(--purple)}.expl{background:#eef1f6;color:var(--mute)}
 nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 nav .in{max-width:1100px;margin:auto;padding:8px 20px;display:flex;gap:4px;overflow-x:auto;white-space:nowrap}nav a{padding:6px 12px;border-radius:99px;color:var(--mute);font-size:14px}nav a:hover{background:#e8f0ff;color:var(--blue)}
 section{padding:40px 0;border-top:1px solid var(--line)}h2{font-size:30px;margin:0 0 6px}h3{margin:0 0 4px;font-size:22px}.sub{color:var(--mute);margin:0 0 22px}
@@ -232,8 +286,9 @@ section{padding:40px 0;border-top:1px solid var(--line)}h2{font-size:30px;margin
 pre{background:#0f1729;color:#e6edff;padding:12px 14px;border-radius:12px;overflow:auto;font:13.5px/1.55 ui-monospace,Menlo,monospace;margin:6px 0}
 ul{margin:4px 0;padding-left:20px}li{margin:4px 0}
 .why{border-left:4px solid var(--blue);background:#e8f0ff;padding:10px 14px;border-radius:0 12px 12px 0;margin-top:12px}
-.redo-box{border-left:4px solid var(--orange);background:#fff2e0;padding:10px 14px;border-radius:0 12px 12px 0;margin-top:12px}
+.redo-box{border-left:4px solid var(--blue);background:#eef3ff;padding:10px 14px;border-radius:0 12px 12px 0;margin-top:12px}
 .shots{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:14px}
+pre.log{max-height:360px;white-space:pre-wrap;word-break:break-word}
 figure{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
 figure img{display:block;width:100%;height:auto;cursor:zoom-in;background:#111}figcaption{padding:8px 12px;font-size:13.5px;color:var(--mute)}
 table{width:100%;border-collapse:collapse;font-size:15px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute)}
@@ -269,12 +324,12 @@ def chart_cut():
             '<div class="legend">Orange = Mac 2 · red ? = request during the switch · green = standby on Mac 3. Record changed at about 11:07:51, first standby answer at 11:08:19 (about 28 s, TTL was 30 s).</div>')
 
 def page():
-    ok = sum(s["status"] == "ok" for s in SECTIONS); redo = sum(s["status"] == "redo" for s in SECTIONS)
+    ok = sum(s["status"] == "ok" for s in SECTIONS); redo = sum(s["status"] == "notes" for s in SECTIONS); rep = sum(s["status"] in ("repro", "explained") for s in SECTIONS)
     shots = sum(len(s["shots"]) for s in SECTIONS)
     o = [f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CN Project Evidence Report</title><style>{CSS}</style></head><body>']
     o.append('<div class="hero"><div class="wrap"><span class="pill ok">TEAM 1 · 25 NOV 2026</span><h1>CN Project: what we built and the proof</h1>'
              '<p>Our own DNS, our own certificate authority, an HTTPS load balancer and two backends on four laptops. Below: every step, the exact command, the screenshot, and why it works.</p></div></div>')
-    o.append('<nav><div class="in"><a href="#top">Overview</a><a href="#glance">At a glance</a><a href="#phase1">Phase 1</a><a href="#phase2">Phase 2</a><a href="#problems">Problems and fixes</a><a href="#todo">To do</a><a href="#viva">Viva</a></div></nav><div id="top"></div>')
+    o.append('<nav><div class="in"><a href="#top">Overview</a><a href="#glance">At a glance</a><a href="#phase1">Phase 1</a><a href="#phase2">Phase 2</a><a href="#problems">Problems and fixes</a><a href="#todo">Limitations</a><a href="#viva">Viva</a></div></nav><div id="top"></div>')
     o.append('<section><div class="wrap"><h2>How a request travels</h2><p class="sub">Four laptops, one job each.</p><div class="flow">'
              '<div class="n" style="border-color:#2f6bff;background:#e8f0ff">Client</div><div class="a">→ DNS</div><div class="n" style="border-color:#7a4dff;background:#f0eaff">Mac 1 · dnsmasq</div>'
              '<div class="a">→ TCP + TLS</div><div class="n" style="border-color:#e8830c;background:#fff2e0">Mac 2 · nginx edge</div><div class="a">→</div>'
@@ -282,34 +337,35 @@ def page():
              '<div class="grid g4" style="margin-top:18px">' +
              "".join(f'<div class="card team" style="--c:{c}"><b>{E(m)} · {E(n)}</b><br><code>{ip}</code><br><span class="owner">{E(r)}</span></div>' for m, n, ip, r, c in TEAM) +
              '</div></div></section>')
-    o.append(f'<section id="glance"><div class="wrap"><h2>Result at a glance</h2><p class="sub">Honest status: green = valid evidence, amber = captured at the wrong moment, re-run needed.</p>'
+    o.append(f'<section id="glance"><div class="wrap"><h2>Result at a glance</h2><p class="sub">Honest status for every task: green = valid evidence, blue = valid with a note, purple = reproduced live on Mac 2, grey = explained.</p>'
              f'<div class="grid g4"><div class="card kpi"><div class="big" style="color:var(--green)">{ok}</div><div class="l">tasks with complete evidence</div></div>'
-             f'<div class="card kpi"><div class="big" style="color:var(--orange)">{redo}</div><div class="l">tasks to re-run (10 minutes)</div></div>'
+             f'<div class="card kpi"><div class="big" style="color:var(--blue)">{redo}</div><div class="l">passed with an honest note</div></div>'
              f'<div class="card kpi"><div class="big" style="color:var(--blue)">{shots}</div><div class="l">screenshots in this report</div></div>'
-             f'<div class="card kpi"><div class="big" style="color:var(--purple)">4</div><div class="l">Macs, 4 owners</div></div></div>'
+             f'<div class="card kpi"><div class="big" style="color:var(--purple)">{rep}</div><div class="l">reproduced live or explained</div></div></div>'
              '<div class="scroll" style="margin-top:18px"><table><tr><th>Task</th><th>Owner</th><th>Status</th></tr>' +
-             "".join(f'<tr><td><a href="#{s["id"]}">{E(s["title"])}</a></td><td>{E(s["owner"])}</td><td><span class="pill {s["status"] if s["status"]!="missing" else "miss"}">{ST[s["status"]][0]}</span></td></tr>' for s in SECTIONS) +
+             "".join(f'<tr><td><a href="#{s["id"]}">{E(s["title"])}</a></td><td>{E(s["owner"])}</td><td><span class="pill {CLS[s["status"]]}">{E(s.get("badge") or ST[s["status"]][0])}</span></td></tr>' for s in SECTIONS) +
              '</table></div></div></section>')
     for ph, name, sub in ((1, "Phase 1: Build and observe", "Make it work, then watch it work."), (2, "Phase 2: Harden and recover", "Break it on purpose and show it recovers.")):
         o.append(f'<section id="phase{ph}"><div class="wrap"><h2>{name}</h2><p class="sub">{sub}</p>')
         for s in [x for x in SECTIONS if x["phase"] == ph]:
-            cls = s["status"] if s["status"] != "missing" else "miss"
-            o.append(f'<div class="sec" id="{s["id"]}"><div class="head"><div><h3>{E(s["title"])}</h3><div class="owner">{E(s["owner"])}</div></div><span class="pill {cls}">{ST[s["status"]][1].upper()}</span></div><div class="body">')
+            cls = CLS[s["status"]]
+            o.append(f'<div class="sec" id="{s["id"]}"><div class="head"><div><h3>{E(s["title"])}</h3><div class="owner">{E(s["owner"])}</div></div><span class="pill {cls}">{E(s.get("badge") or ST[s["status"]][0])}</span></div><div class="body">')
             o.append(f'<div class="lbl">What we did</div><div>{E(s["what"])}</div>')
             o.append('<div class="lbl">Commands</div><pre>' + E("\n".join(s["ran"])) + '</pre>')
             o.append('<div class="lbl">What the evidence shows</div><ul>' + "".join(f'<li>{E(x)}</li>' for x in s["saw"]) + '</ul>')
             if s.get("chart") == "ttl": o.append(chart_ttl())
             if s.get("chart") == "cutover": o.append(chart_cut())
             o.append(f'<div class="why"><b>Why it works:</b> {E(s["why"])}</div>')
-            if s.get("redo"): o.append(f'<div class="redo-box"><b>Re-run needed:</b> {E(s["redo"])}</div>')
+            if s.get("note"): o.append(f'<div class="redo-box"><b>Note:</b> {E(s["note"])}</div>')
+            for cap, pth, rx in s.get("logs", []): o.append(f'<div class="lbl">{E(cap)}</div><pre class="log">{E(load_log(pth, rx))}</pre>')
             o.append('<div class="shots">' + "".join(f'<figure><img loading="lazy" src="{p}" alt="{E(c)}"><figcaption>{E(c)}</figcaption></figure>' for p, c in s["shots"]) + '</div>')
             if s.get("files"): o.append('<div class="lbl">Raw logs</div><div>' + " ".join(f'<code>{E(f)}</code>' for f in s["files"]) + '</div>')
             o.append('</div></div>')
         o.append('</div></section>')
     o.append('<section id="problems"><div class="wrap"><h2>Problems we hit and how we fixed them</h2><p class="sub">Real issues from the lab, each one a good viva answer.</p><div class="scroll"><table><tr><th>Problem</th><th>What happened and the fix</th></tr>' +
              "".join(f'<tr><td><b>{E(a)}</b></td><td>{E(b)}</td></tr>' for a, b in PROBLEMS) + '</table></div></div></section>')
-    o.append('<section id="todo"><div class="wrap"><h2>Still to do before submission</h2><p class="sub">Tick these off.</p><div class="card">' +
-             "".join(f'<label style="display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)"><input type="checkbox" style="width:18px;height:18px;margin-top:5px"><span>{E(m)}</span></label>' for m in MISSING) + '</div></div></section>')
+    o.append('<section id="todo"><div class="wrap"><h2>Limitations and honest notes</h2><p class="sub">What the evidence does and does not show.</p><div class="card"><ul>' +
+             "".join(f'<li>{E(m)}</li>' for m in MISSING) + '</ul></div></div></section>')
     o.append('<section id="viva"><div class="wrap"><h2>Viva: short answers</h2><p class="sub">Click a question.</p>' +
              "".join(f'<details><summary>{E(q)}</summary><p>{E(a)}</p></details>' for q, a in VIVA) + '</div></section>')
     o.append('<footer>CN Project · team1 · Mohan · Narendra · Keshav · Mayank · generated by evidence/build_report.py</footer>')

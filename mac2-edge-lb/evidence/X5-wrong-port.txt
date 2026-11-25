@@ -1,0 +1,6 @@
+# captured 2026-11-25 11:36:12 on Mac 2 (10.7.7.27)
+$ curl -sv --max-time 6 --cacert "$CA" --resolve $APP_HOST:9999:$IP https://$APP_HOST:9999/ 2>&1 | grep -E "Trying|refused|timed out|Failed"; nc -vz -w 3 $IP 9999
+*   Trying 10.7.7.27:9999...
+* connect to 10.7.7.27 port 9999 from 10.7.7.27 port 53486 failed: Connection refused
+* Failed to connect to app.team1.test port 9999 after 0 ms: Couldn't connect to server
+nc: connectx to 10.7.7.27 port 9999 (tcp) failed: Connection refused

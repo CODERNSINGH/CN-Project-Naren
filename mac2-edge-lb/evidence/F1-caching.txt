@@ -1,0 +1,29 @@
+# captured 2026-11-25 11:36:14 on Mac 2 (10.7.7.27)
+$ echo "--- 1) first request: full 200 with Cache-Control + ETag"; curl -si http://127.0.0.1:3901/api/catalog | sed -n "1,12p"; E=$(curl -sI http://127.0.0.1:3901/api/catalog | tr -d "\r" | awk -F": " "tolower(\$1)==\"etag\"{print \$2}"); echo; echo "--- 2) conditional request with If-None-Match: $E  (expect 304, no body)"; curl -si -H "If-None-Match: $E" http://127.0.0.1:3901/api/catalog | sed -n "1,8p"; echo; echo "--- 3) dynamic endpoint must NOT be cached"; curl -sI http://127.0.0.1:3901/api/status | grep -i -E "HTTP/|cache-control"
+--- 1) first request: full 200 with Cache-Control + ETag
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.5
+Date: Wed, 25 Nov 2026 06:06:14 GMT
+Content-Type: application/json
+Content-Length: 74
+ETag: "0ee15ab3a9bc1a9c"
+Cache-Control: max-age=60
+Date: Wed, 25 Nov 2026 06:06:14 GMT
+X-Backend: A
+X-Response-Time-ms: 1.3
+Connection: close
+
+
+--- 2) conditional request with If-None-Match: "0ee15ab3a9bc1a9c"  (expect 304, no body)
+HTTP/1.1 304 NOT MODIFIED
+Server: Werkzeug/3.1.8 Python/3.13.5
+Date: Wed, 25 Nov 2026 06:06:14 GMT
+ETag: "0ee15ab3a9bc1a9c"
+Cache-Control: max-age=60
+Date: Wed, 25 Nov 2026 06:06:14 GMT
+X-Backend: A
+X-Response-Time-ms: 0.3
+
+--- 3) dynamic endpoint must NOT be cached
+HTTP/1.1 200 OK
+Cache-Control: no-store

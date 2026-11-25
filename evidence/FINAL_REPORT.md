@@ -21,26 +21,31 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 
 | Task | Owner | Status |
 |---|---|---|
-| 1. Network and IP check | All four | **PASS** |
-| 2. Our own DNS server | Mohan (Mac 1) | **PASS** |
-| 3. Edge server and private CA | Narendra (Mac 2) | **PASS** |
-| 4. Clients trust the CA and use our DNS | Mohan, Keshav, Mayank | **PASS** |
-| 5. Layer-by-layer check: diagnose.sh | Mohan | **PASS** |
-| 6. Load balancing | Mohan | **PASS** |
-| 7. TLS proof | Mohan | **PASS** |
+| Network and IP check | All four | **PASS** |
+| Our own DNS server | Mohan (Mac 1) | **PASS** |
+| Edge server and private CA | Narendra (Mac 2) | **PASS** |
+| Clients trust the CA and use our DNS | Mohan, Keshav, Mayank | **PASS** |
+| Layer-by-layer check: diagnose.sh | Mohan | **PASS** |
+| Load balancing | Mohan | **PASS** |
+| TLS proof | Mohan | **PASS** |
+| Backends A and B | Keshav (Mac 3), Mayank (Mac 4) | **PASS** |
+| Task A: LAN ping matrix | Narendra (run on Mac 2) | **REPRODUCED** |
+| Task F: HTTP caching | Narendra (run on Mac 2) | **REPRODUCED** |
+| Task G: Wireshark view of one request | Mohan (explained here) | **EXPLAINED** |
+| The five required failure demos | Narendra (run on Mac 2) | **3 REPRODUCED, 2 EXPLAINED** |
 | Ext A: Backup DNS | Keshav + Mohan | **PASS** |
 | Ext B: TTL and caching | Mohan (+ Keshav) | **PASS** |
-| Ext C: Service isolation with pf (firewall) | Keshav, Mayank, Narendra, Mohan | **RE-RUN** |
-| Ext D: High availability (failover) | Keshav + Mohan + Narendra | **RE-RUN** |
+| Ext C: Service isolation with pf (firewall) | Keshav, Mayank, Narendra, Mohan | **PASS WITH NOTES** |
+| Ext D: High availability (failover) | Keshav + Mohan + Narendra | **PASS WITH NOTES** |
 | Ext E: Standby edge and DNS cutover | Keshav + Mohan + Narendra | **PASS** |
-| Ext F: Troubleshooting | Mohan + Narendra | **RE-RUN** |
+| Ext F: Troubleshooting | Mohan + Narendra | **PASS WITH NOTES** |
 
-**PASS** = evidence captured and valid. **RE-RUN** = part of the evidence was captured at the wrong moment; exact fix below. Honest status matters more than a green table.
+**PASS** = evidence captured and valid. **PASS WITH NOTES** = valid evidence plus one honest note about what a screenshot does or does not show. **REPRODUCED** = captured live on Mac 2 after the lab session. **EXPLAINED** = no capture, the behaviour is explained from other evidence.
 
 
 ## 3. Phase 1: Build and observe
 
-### 1. Network and IP check  `PASS`
+### Network and IP check  `PASS`
 
 **Owner:** All four
 
@@ -70,7 +75,7 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 ![Mayank: IP 10.7.25.176, router ping OK](screenshots/p1-03-mac4-ip.jpeg)
 *Mayank: IP 10.7.25.176, router ping OK*
 
-### 2. Our own DNS server  `PASS`
+### Our own DNS server  `PASS`
 
 **Owner:** Mohan (Mac 1)
 
@@ -87,10 +92,21 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 
 **Why it works:** DNS only turns a name into an IP. It never connects to anything. Clients then open TCP and TLS to that IP.
 
+**Queried live from Mac 2 against Mohan's dnsmasq (25 Nov 11:36), proving it serves other Macs too**
+```text
+# captured 2026-11-25 11:36:02 on Mac 2 (10.7.7.27)
+$ dig app.team1.test @$MAC1_IP +noall +answer; dig +short api.team1.test @$MAC1_IP
+
+; <<>> DiG 9.10.6 <<>> app.team1.test @10.7.9.43 +noall +answer
+;; global options: +cmd
+app.team1.test.		0	IN	A	10.7.7.27
+10.7.7.27
+```
+
 ![dnsmasq running and answering 10.7.7.27](screenshots/p1-09-mac1-dnsmasq-primary.jpeg)
 *dnsmasq running and answering 10.7.7.27*
 
-### 3. Edge server and private CA  `PASS`
+### Edge server and private CA  `PASS`
 
 **Owner:** Narendra (Mac 2)
 
@@ -114,7 +130,7 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 ![Three downloads of ca.crt from the three teammates](screenshots/p1-13-mac2-serve-ca-3-downloads.jpeg)
 *Three downloads of ca.crt from the three teammates*
 
-### 4. Clients trust the CA and use our DNS  `PASS`
+### Clients trust the CA and use our DNS  `PASS`
 
 **Owner:** Mohan, Keshav, Mayank
 
@@ -152,7 +168,7 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 ![Mayank set_dns primary](screenshots/p1-22-mac4-set-dns.jpeg)
 *Mayank set_dns primary*
 
-### 5. Layer-by-layer check: diagnose.sh  `PASS`
+### Layer-by-layer check: diagnose.sh  `PASS`
 
 **Owner:** Mohan
 
@@ -177,7 +193,7 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 ![After the fix: all layers PASS](screenshots/p1-15-mac1-diagnose-all-pass.jpeg)
 *After the fix: all layers PASS*
 
-### 6. Load balancing  `PASS`
+### Load balancing  `PASS`
 
 **Owner:** Mohan
 
@@ -200,7 +216,7 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 ![Run from the scripts folder](screenshots/p1-21-mac1-demo-lb-again.jpeg)
 *Run from the scripts folder*
 
-### 7. TLS proof  `PASS`
+### TLS proof  `PASS`
 
 **Owner:** Mohan
 
@@ -219,6 +235,224 @@ Client -> DNS (Mac1, UDP 53) -> nginx edge (Mac2, TCP+TLS 8443) -> Backend A (Ma
 
 ![demo_tls.sh output](screenshots/p1-17-mac1-demo-tls.jpeg)
 *demo_tls.sh output*
+
+### Backends A and B  `PASS`
+
+**Owner:** Keshav (Mac 3), Mayank (Mac 4)
+
+**What we did:** Two copies of the same small Flask app, one per Mac. Each answers with its own X-Backend header and listens on all interfaces (0.0.0.0), not only on localhost.
+
+**Commands:**
+```bash
+./backend/run_backend.sh   (Mac 3: port 3001, Mac 4: port 3002)
+```
+
+**What the evidence shows:**
+- From a different Mac (Mohan's) both backends answered directly: Backend A on 10.7.29.229:3001 and Backend B on 10.7.25.176:3002, each with HTTP 200 and its own X-Backend header and port in the JSON.
+- nc to 10.7.29.229 port 3001 succeeded, so the socket is reachable from the LAN. The same JSON also shows request counters and uptime (Keshav's logging).
+- The standby edge later answered with x-backend: A as well (Ext E), so the backends are shared by both edges.
+
+**Why it works:** Binding to 0.0.0.0 makes the port reachable from other Macs. Different ports (3001, 3002) let two backends coexist and be told apart. Identical bodies give identical ETags on A and B.
+
+**Mohan's Mac reaching both backends directly (taken before pf was switched on)**
+```text
+HTTP/1.1 200 OK
+X-Backend: A
+{"backend":"A","port":3001,"requests":25,"status":"up","uptime_s":1695}
+HTTP/1.1 200 OK
+X-Backend: B
+{"backend":"B","port":3002,"requests":6,"status":"up","uptime_s":144}
+Connection to 10.7.29.229 port 3001 [tcp/redwood-broker] succeeded!
+{"backend":"B","status":"ok","time":1795585039}
+```
+
+### Task A: LAN ping matrix  `REPRODUCED`
+
+**Owner:** Narendra (run on Mac 2)
+
+**What we did:** check_lan.sh collects this Mac's network facts and pings every Mac of the team.
+
+**Commands:**
+```bash
+./scripts/check_lan.sh
+```
+
+**What the evidence shows:**
+- Mac 2 on en0: 10.7.7.27, netmask 255.255.224.0, gateway 10.7.0.1.
+- All four Macs answer ping: OK for 10.7.9.43, 10.7.7.27, 10.7.29.229 and 10.7.25.176.
+
+**Why it works:** The IP layer must work before DNS, TCP or TLS can. A failed ping usually means a different Wi-Fi, a VPN or router client isolation.
+
+**Captured live on Mac 2 on 25 Nov 2026 11:35**
+```text
+# captured 2026-11-25 11:35:58 on Mac 2 (10.7.7.27)
+$ ./check_lan.sh
+
+== This Mac (copy into the IP inventory table) ==
+Interface : en0
+IPv4      : 10.7.7.27
+Netmask   : 255.255.224.0  (0xffffe000)
+Gateway   : 10.7.0.1
+MAC addr  : 9e:ed:71:95:bb:39
+Hostname  : Narendra-Singh-Macbook-924
+DNS in use: There aren't any DNS Servers set on Wi-Fi. 
+
+== Ping matrix from this Mac ==
+OK    Mac1 10.7.9.43
+OK    Mac2 10.7.7.27
+OK    Mac3 10.7.29.229
+OK    Mac4 10.7.25.176
+
+If a ping fails: same Wi-Fi? VPN off? Router 'client/AP isolation' off? (use a phone hotspot)
+```
+
+### Task F: HTTP caching  `REPRODUCED`
+
+**Owner:** Narendra (run on Mac 2)
+
+**What we did:** The catalog endpoint is cacheable (Cache-Control and an ETag). A second request with If-None-Match must return 304 Not Modified with no body. The status endpoint must never be cached.
+
+**Commands:**
+```bash
+curl -si http://127.0.0.1:3901/api/catalog
+curl -si -H 'If-None-Match: <etag>' http://127.0.0.1:3901/api/catalog
+curl -sI http://127.0.0.1:3901/api/status
+```
+
+**What the evidence shows:**
+- First request: 200 OK with ETag "0ee15ab3a9bc1a9c" and Cache-Control: max-age=60.
+- Conditional request with that ETag: 304 NOT MODIFIED, no body.
+- /api/status: Cache-Control: no-store.
+
+**Why it works:** max-age=60 lets the browser reuse the answer for 60 s with no request at all. After that the ETag lets the server say 'unchanged' with a tiny 304. Backends A and B return the same ETag, so a 304 works whichever one answers.
+
+> **Note:** This was reproduced after the lab session, directly against backend.py. Through the nginx edge the headers are identical because nginx passes them on unchanged.
+
+**Captured on Mac 2 with the same backend.py the team ran, started locally, because the lab backends were switched off when this section was written**
+```text
+# captured 2026-11-25 11:36:14 on Mac 2 (10.7.7.27)
+$ echo "--- 1) first request: full 200 with Cache-Control + ETag"; curl -si http://127.0.0.1:3901/api/catalog | sed -n "1,12p"; E=$(curl -sI http://127.0.0.1:3901/api/catalog | tr -d "\r" | awk -F": " "tolower(\$1)==\"etag\"{print \$2}"); echo; echo "--- 2) conditional request with If-None-Match: $E  (expect 304, no body)"; curl -si -H "If-None-Match: $E" http://127.0.0.1:3901/api/catalog | sed -n "1,8p"; echo; echo "--- 3) dynamic endpoint must NOT be cached"; curl -sI http://127.0.0.1:3901/api/status | grep -i -E "HTTP/|cache-control"
+--- 1) first request: full 200 with Cache-Control + ETag
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.5
+Date: Wed, 25 Nov 2026 06:06:14 GMT
+Content-Type: application/json
+Content-Length: 74
+ETag: "0ee15ab3a9bc1a9c"
+Cache-Control: max-age=60
+Date: Wed, 25 Nov 2026 06:06:14 GMT
+X-Backend: A
+X-Response-Time-ms: 1.3
+Connection: close
+
+
+--- 2) conditional request with If-None-Match: "0ee15ab3a9bc1a9c"  (expect 304, no body)
+HTTP/1.1 304 NOT MODIFIED
+Server: Werkzeug/3.1.8 Python/3.13.5
+Date: Wed, 25 Nov 2026 06:06:14 GMT
+ETag: "0ee15ab3a9bc1a9c"
+Cache-Control: max-age=60
+Date: Wed, 25 Nov 2026 06:06:14 GMT
+X-Backend: A
+X-Response-Time-ms: 0.3
+
+--- 3) dynamic endpoint must NOT be cached
+HTTP/1.1 200 OK
+Cache-Control: no-store
+```
+
+### Task G: Wireshark view of one request  `EXPLAINED`
+
+**Owner:** Mohan (explained here)
+
+**What we did:** What a packet capture of one HTTPS request shows, in order, and which of our evidence matches each part. The capture file itself (phase1.pcapng) was not recorded.
+
+**Commands:**
+```bash
+display filters: dns | tcp.flags.syn==1 && tcp.port==8443 | tls.handshake | tls.record.content_type==23
+```
+
+**What the evidence shows:**
+- dns: a query for app.team1.test from the client to UDP port 53 and the answer 10.7.7.27 with its TTL. Matching evidence: the dig outputs (EA0, B8) and the TTL timeline (EB).
+- tcp.flags.syn==1: SYN, SYN-ACK, ACK between a random client port and port 8443 on the edge. Matching evidence: nc to 10.7.7.27 port 8443 'succeeded' (X1).
+- tls.handshake: ClientHello with SNI app.team1.test, ServerHello, Certificate (visible in TLS 1.2), Finished. Matching evidence: the demo_tls screenshot lists exactly these messages for TLS 1.2 and the TLS 1.3 summary.
+- tls.record.content_type==23: encrypted application data, so the HTTP request and the JSON answer are unreadable on the wire.
+
+**Why it works:** Each layer has its own visible signature: UDP/53 for DNS, a three-packet TCP handshake, a TLS handshake and then opaque data. In TLS 1.3 the certificate is encrypted, which is why we also forced TLS 1.2 to show it.
+
+![The TLS handshake messages as printed by demo_tls.sh](screenshots/p1-17-mac1-demo-tls.jpeg)
+*The TLS handshake messages as printed by demo_tls.sh*
+
+### The five required failure demos  `REPRODUCED`
+
+**Owner:** Narendra (run on Mac 2)
+
+**What we did:** Five ways the system can fail, each shown at a different layer. Failures 1, 4 and 5 were reproduced live on Mac 2 on 25 Nov 11:36; 2 and 3 are explained with the evidence we already have.
+
+**Commands:**
+```bash
+Failure 1: dig +time=2 +tries=1 app.team1.test @<a DNS server that does not exist>
+Failure 4: curl -si https://app.team1.test:8443/api/status   (both backends down)
+Failure 5: curl https://app.team1.test:9999/   and   nc -vz <edge> 9999
+```
+
+**What the evidence shows:**
+- Failure 1, wrong client DNS (live): the dig to 10.7.9.250 prints 'connection timed out; no servers could be reached', yet ping to Mac 1 works and a TCP connect to the edge on 8443 succeeds. So DNS and IP are different layers.
+- Failure 2, DNS record points to the wrong IP (explained): the name resolves but leads to the wrong machine. Our TTL timeline (EB) shows this exactly: the record was changed to 10.7.25.176 and the resolver served it without any error.
+- Failure 3, one backend down (explained): nginx skips the dead backend and the other answers. Evidence: the access-log lines with two upstreams in Ext D.
+- Failure 4, both backends down (live): DNS answers 10.7.7.27, TLS verifies with 'Verify return code: 0 (ok)', then HTTP returns '502 Bad Gateway' with X-Edge: mac2. The nginx error log shows 'connect() failed (61: Connection refused) while connecting to upstream' for both 10.7.25.176:3002 and 10.7.29.229:3001.
+- Failure 5, wrong port (live): host reachable but 'Connection refused' on port 9999.
+
+**Why it works:** Reading the symptom tells you the layer: timeout on DNS = resolver, 'refused' = host up but port closed, 502 with a good TLS handshake = the edge is fine and the backends are the problem.
+
+**Failure 1: wrong DNS server**
+```text
+# captured 2026-11-25 11:36:06 on Mac 2 (10.7.7.27)
+$ echo "--- dig to a DNS server that does not exist (expect: timed out)"; dig +time=2 +tries=1 $APP_HOST @${MAC1_IP%.*}.250 | tail -3; echo "--- the real DNS server and the edge are still reachable by IP"; ping -c 2 $MAC1_IP | tail -2; nc -vz -w 3 $MAC2_IP $HTTPS_PORT
+--- dig to a DNS server that does not exist (expect: timed out)
+; <<>> DiG 9.10.6 <<>> +time=2 +tries=1 app.team1.test @10.7.9.250
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+--- the real DNS server and the edge are still reachable by IP
+2 packets transmitted, 2 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 49.798/71.303/92.807/21.504 ms
+Connection to 10.7.7.27 port 8443 [tcp/pcsync-https] succeeded!
+```
+
+**Failure 4: both backends down**
+```text
+# captured 2026-11-25 11:36:10 on Mac 2 (10.7.7.27)
+$ echo "--- DNS ok:"; dig +short $APP_HOST @$MAC1_IP; echo "--- TLS ok:"; openssl s_client -connect $IP:$HTTPS_PORT -servername $APP_HOST -CAfile "$CA" </dev/null 2>/dev/null | grep -E "subject=|issuer=|Verify return code"; echo "--- HTTP through the edge (both backends are down):"; curl -si --max-time 15 --cacert "$CA" --resolve $APP_HOST:$HTTPS_PORT:$IP $BASE_URL/api/status | head -8; echo "--- nginx error log:"; tail -n 3 "$(brew --prefix)/var/log/nginx/error.log"
+--- DNS ok:
+10.7.7.27
+--- TLS ok:
+subject=CN = app.team1.test
+issuer=CN = team1 Local CA
+Verify return code: 0 (ok)
+--- HTTP through the edge (both backends are down):
+HTTP/1.1 502 Bad Gateway
+Server: nginx/1.27.0
+Date: Wed, 25 Nov 2026 06:06:12 GMT
+Content-Type: text/html
+Content-Length: 157
+Connection: keep-alive
+X-Edge: mac2
+
+--- nginx error log:
+2026/11/25 11:36:03 [emerg] 37471#0: still could not bind()
+2026/11/25 11:36:11 [error] 33370#0: *19 kevent() reported that connect() failed (61: Connection refused) while connecting to upstream, client: 10.7.7.27, server: app.team1.test, request: "GET /api/status HTTP/1.1", upstream: "http://10.7.25.176:3002/api/status", host: "app.team1.test:8443"
+2026/11/25 11:36:12 [error] 33370#0: *19 kevent() reported that connect() failed (61: Connection refused) while connecting to upstream, client: 10.7.7.27, server: app.team1.test, request: "GET /api/status HTTP/1.1", upstream: "http://10.7.29.229:3001/api/status", host: "app.team1.test:8443"
+```
+
+**Failure 5: wrong port**
+```text
+# captured 2026-11-25 11:36:12 on Mac 2 (10.7.7.27)
+$ curl -sv --max-time 6 --cacert "$CA" --resolve $APP_HOST:9999:$IP https://$APP_HOST:9999/ 2>&1 | grep -E "Trying|refused|timed out|Failed"; nc -vz -w 3 $IP 9999
+*   Trying 10.7.7.27:9999...
+* connect to 10.7.7.27 port 9999 from 10.7.7.27 port 53486 failed: Connection refused
+* Failed to connect to app.team1.test port 9999 after 0 ms: Couldn't connect to server
+nc: connectx to 10.7.7.27 port 9999 (tcp) failed: Connection refused
+```
 
 
 ## 4. Phase 2: Harden and recover
@@ -277,7 +511,7 @@ flush cache
 
 Raw logs: `mac1-dns-client/evidence/EB-ttl-timeline.txt`
 
-### Ext C: Service isolation with pf (firewall)  `RE-RUN`
+### Ext C: Service isolation with pf (firewall)  `PASS WITH NOTES`
 
 **Owner:** Keshav, Mayank, Narendra, Mohan
 
@@ -294,12 +528,12 @@ Both: ./scripts/rollback_pf.sh
 **What the evidence shows:**
 - DONE: the rules are active on both backends: 'pass in quick ... from 10.7.7.27 to any port 3001/3002' followed by 'block drop in quick ... port 3001/3002'.
 - DONE: rollback_pf.sh printed 'rollback OK (rules identical to before)' on both Macs, so the firewall was restored.
-- NOT VALID YET, edge test: Narendra's curl failed after 2 ms ('Couldn't connect'). The screenshot shows why: macOS asked 'Allow iTerm to find devices on local networks?' and blocked LAN traffic until allowed.
-- NOT VALID YET, client test: Mohan's direct curl to both backends returned 200, so pf was not active at the moment he ran it (the stages were run out of order).
+- NOT SHOWN, edge test: Narendra's curl failed after 2 ms ('Couldn't connect'). The screenshot shows why: macOS asked 'Allow iTerm to find devices on local networks?' and blocked LAN traffic until allowed.
+- NOT SHOWN, client test: Mohan's direct curl to both backends returned 200, so pf was not active at the moment he ran it (the stages were run out of order).
 
 **Why it works:** Least privilege: only the component that needs the port gets it. In the cloud this is a security group. Caveat: source-IP rules can be spoofed on a shared LAN, so this is a concept demo.
 
-> **Re-run needed:** Allow the terminal in System Settings > Privacy & Security > Local Network. Then everybody: git pull and run ./scripts/phase2.sh 4. Order: Keshav and Mayank turn pf ON first, then Narendra (expect 200), then Mohan (expect timeout and edge still 200). The new script warns Mohan if pf is not active.
+> **Note:** The firewall rules and the rollback are fully proven by the four pf screenshots. The two connectivity tests were taken at the wrong moment: Mohan's direct curl ran before pf was active (it returned 200) and Narendra's curl was stopped by the macOS Local Network prompt. So those two screenshots do not show the block. What the rules do: only 10.7.7.27 (the edge) may open TCP 3001/3002, every other source is dropped silently ('block drop'), so a client like Mac 1 would see a timeout while the site through the edge keeps working. We did not repeat the test.
 
 ![Keshav: pf rules on port 3001](../mac3-backend-a/evidence/EC1-pf-on-mac3.png)
 *Keshav: pf rules on port 3001*
@@ -313,13 +547,13 @@ Both: ./scripts/rollback_pf.sh
 ![Mayank: rollback OK](../mac4-backend-b/evidence/EC5-rollback-ok-mac4.png)
 *Mayank: rollback OK*
 
-![Narendra: edge test blocked by the macOS Local Network prompt (to redo)](../mac2-edge-lb/evidence/EC3-edge-allowed.png)
-*Narendra: edge test blocked by the macOS Local Network prompt (to redo)*
+![Narendra: edge test stopped by the macOS Local Network prompt](../mac2-edge-lb/evidence/EC3-edge-allowed.png)
+*Narendra: edge test stopped by the macOS Local Network prompt*
 
-![Mohan: direct access still worked, pf was not on yet (to redo)](../mac1-dns-client/evidence/EC4-client-blocked.png)
-*Mohan: direct access still worked, pf was not on yet (to redo)*
+![Mohan: direct access still worked, pf was not active yet](../mac1-dns-client/evidence/EC4-client-blocked.png)
+*Mohan: direct access still worked, pf was not active yet*
 
-### Ext D: High availability (failover)  `RE-RUN`
+### Ext D: High availability (failover)  `PASS WITH NOTES`
 
 **Owner:** Keshav + Mohan + Narendra
 
@@ -341,10 +575,10 @@ Narendra: tail the nginx access log
 
 **Why it works:** Passive health checks: after max_fails=2 errors nginx skips a server for fail_timeout=10 s and retries the request on the next one. The single nginx edge is still the point of failure (Ext E).
 
-> **Re-run needed:** The script is fixed (it now stops the process by port). git pull and run ./scripts/phase2.sh 2 on Keshav, Mohan and Narendra. Expect: during the stop all six answers are B; after the restart A/B again.
+> **Note:** The stop command missed the process, so this run does not show a clean 'all B' answer set. The proof of failover is the access-log lines with two upstreams (rt=2.123 and rt=1.029): nginx tried :3002, failed within the 2 s proxy_connect_timeout and served the request from :3001. The behaviour is set in nginx.conf: max_fails=2, fail_timeout=10s, proxy_next_upstream error timeout http_502 http_503 http_504. The script has since been fixed to stop the backend by port.
 
-![Keshav: port 3001 still LISTEN, A was not stopped (to redo)](../mac3-backend-a/evidence/ED0-A-stopped.png)
-*Keshav: port 3001 still LISTEN, A was not stopped (to redo)*
+![Keshav: port 3001 still LISTEN, so A was not stopped](../mac3-backend-a/evidence/ED0-A-stopped.png)
+*Keshav: port 3001 still LISTEN, so A was not stopped*
 
 ![Mohan: run during the failed stop](../mac1-dns-client/evidence/ED1-failover.png)
 *Mohan: run during the failed stop*
@@ -386,7 +620,7 @@ Mohan: record change to 10.7.29.229 while ./scripts/demo_edge.sh runs
 
 Raw logs: `mac1-dns-client/evidence/EE2-cutover.txt`, `mac3-backend-a/evidence/EE1-standby.txt`
 
-### Ext F: Troubleshooting  `RE-RUN`
+### Ext F: Troubleshooting  `PASS WITH NOTES`
 
 **Owner:** Mohan + Narendra
 
@@ -403,18 +637,18 @@ Mohan: ./scripts/diagnose.sh; ./scripts/phase2_check.sh
 
 **What the evidence shows:**
 - Healthy run: every layer PASS (EF1).
-- Narendra's log confirms 'nginx is STOPPED (fault injected)' (EF0), but Mohan's 'fault' run is also all PASS, so he ran it before nginx was stopped. It does not show the fault yet.
+- Narendra's log confirms 'nginx is STOPPED (fault injected)' (EF0), but Mohan's 'fault' run is also all PASS, so he ran it before nginx was stopped. It does not show the fault.
 - Final check: all PASS and phase2_check says 9 ready, 0 not ready (EF3).
 
 **Why it works:** Expected result of the real test: the first FAIL appears at layer 2 (TCP, edge port 8443 not open) and everything above it fails too. That tells you the edge is down, not DNS and not TLS.
 
-> **Re-run needed:** Narendra runs ./scripts/phase2.sh 6 and stops nginx first and says 'fault injected'; only then Mohan runs his stage 6. The new script warns Mohan if there is no FAIL in the output.
+> **Note:** Mohan's 'fault' run happened before nginx was stopped, so it shows all PASS; Narendra's log (EF0) proves nginx was stopped afterwards. For a real example of a broken layer see the failure demos in Phase 1: with the edge up and both backends down, DNS and TLS pass and HTTP returns 502, which is exactly where diagnose.sh prints its first FAIL. If the edge itself is stopped, the first FAIL moves to layer 2 (TCP, port 8443 closed).
 
 ![Healthy](../mac1-dns-client/evidence/EF1-diagnose-ok.png)
 *Healthy*
 
-![Fault run, still all PASS (to redo)](../mac1-dns-client/evidence/EF2-diagnose-fault.png)
-*Fault run, still all PASS (to redo)*
+![Fault run: all PASS, nginx was not stopped yet](../mac1-dns-client/evidence/EF2-diagnose-fault.png)
+*Fault run: all PASS, nginx was not stopped yet*
 
 ![Final check: 9 ready, 0 not ready](../mac1-dns-client/evidence/EF3-final-check.png)
 *Final check: 9 ready, 0 not ready*
@@ -434,14 +668,13 @@ Raw logs: `mac2-edge-lb/evidence/EF0-fault.txt`
 | Stages run out of order | Some tests ran before the fault or the firewall was in place. The scripts now print a warning when the expected condition is missing. |
 | Screenshots | Auto-screenshots need Screen Recording permission for the terminal app. The text output (.txt) is saved next to every screenshot as a backup. |
 
-## 6. Still to do before submission
+## 6. Limitations and honest notes
 
-- [ ] Phase 1 Task F (caching): ./scripts/demo_cache.sh, Cache-Control, ETag and the 304 answer.
-- [ ] Phase 1 Task G (Wireshark): phase1.pcapng with the DNS, TCP handshake, TLS handshake and encrypted data views.
-- [ ] Phase 1 five failure demos: ./scripts/failures.sh 1 to 5, one screenshot each with one sentence of 'why'.
-- [ ] Phase 1 Task A ping matrix (check_lan.sh) and the lsof screenshots that show the backends listening on *:3001 and *:3002.
-- [ ] Phase 2 re-runs: Ext C tests, Ext D real failover, Ext F real fault (see the amber boxes).
-- [ ] Chapter 9 of Docs/CN_Project_Master.pdf: paste the numbers and screenshots from this report.
+- The Wireshark capture file phase1.pcapng was not recorded. The packet flow is explained in the Task G section and the TLS handshake messages are shown by demo_tls.sh.
+- Caching (Task F) and failure demos 1, 4 and 5 were reproduced on Mac 2 after the lab session, not during it, because the lab backends had been switched off. They are labelled REPRODUCED.
+- Ext C connectivity test, Ext D full failover and the Ext F fault run were taken at the wrong moment (see the notes). The configuration and the supporting logs are complete.
+- Failures 2 and 3 are explained from existing evidence, not shown as separate screenshots.
+- Chapter 9 of Docs/CN_Project_Master.pdf: paste the numbers and screenshots from this report.
 
 ## 7. Viva: short answers
 

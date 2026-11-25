@@ -1,0 +1,21 @@
+# captured 2026-11-25 11:36:10 on Mac 2 (10.7.7.27)
+$ echo "--- DNS ok:"; dig +short $APP_HOST @$MAC1_IP; echo "--- TLS ok:"; openssl s_client -connect $IP:$HTTPS_PORT -servername $APP_HOST -CAfile "$CA" </dev/null 2>/dev/null | grep -E "subject=|issuer=|Verify return code"; echo "--- HTTP through the edge (both backends are down):"; curl -si --max-time 15 --cacert "$CA" --resolve $APP_HOST:$HTTPS_PORT:$IP $BASE_URL/api/status | head -8; echo "--- nginx error log:"; tail -n 3 "$(brew --prefix)/var/log/nginx/error.log"
+--- DNS ok:
+10.7.7.27
+--- TLS ok:
+subject=CN = app.team1.test
+issuer=CN = team1 Local CA
+Verify return code: 0 (ok)
+--- HTTP through the edge (both backends are down):
+HTTP/1.1 502 Bad Gateway
+Server: nginx/1.27.0
+Date: Wed, 25 Nov 2026 06:06:12 GMT
+Content-Type: text/html
+Content-Length: 157
+Connection: keep-alive
+X-Edge: mac2
+
+--- nginx error log:
+2026/11/25 11:36:03 [emerg] 37471#0: still could not bind()
+2026/11/25 11:36:11 [error] 33370#0: *19 kevent() reported that connect() failed (61: Connection refused) while connecting to upstream, client: 10.7.7.27, server: app.team1.test, request: "GET /api/status HTTP/1.1", upstream: "http://10.7.25.176:3002/api/status", host: "app.team1.test:8443"
+2026/11/25 11:36:12 [error] 33370#0: *19 kevent() reported that connect() failed (61: Connection refused) while connecting to upstream, client: 10.7.7.27, server: app.team1.test, request: "GET /api/status HTTP/1.1", upstream: "http://10.7.29.229:3001/api/status", host: "app.team1.test:8443"
