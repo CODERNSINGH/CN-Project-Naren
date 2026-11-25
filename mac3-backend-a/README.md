@@ -87,5 +87,5 @@ Why bind 0.0.0.0 vs 127.0.0.1 · socket = IP+port+protocol · why different port
 The terminal running `run_backend.sh` prints one line per request, `via=edge` or `via=direct`. Screenshot it next to the curl output as evidence.
 ```bash
 curl -sk https://app.team1.test:8443/api/whoami   # through the edge
-curl -s  http://10.7.1.186:3001/api/whoami        # direct (blocked once isolate_pf.sh is on)
+curl -s  http://10.7.29.229:3001/api/whoami        # direct (blocked once isolate_pf.sh is on)
 ```
